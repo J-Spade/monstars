@@ -20,6 +20,6 @@ debug:
 	mv $(MOD).ko ../build/$(MOD)-$(KERNEL_VER).ko
 
 clean:
-	rm *.order *.symvers *.mod* $(MOD).o
+	rm *.order *.symvers *.mod* $(MOD).o .*.cmd
 
 endif
