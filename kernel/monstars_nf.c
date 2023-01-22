@@ -1,4 +1,5 @@
 
+#include <linux/init.h>
 #include <linux/ip.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -131,7 +132,7 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
 }
 
 // Setup
-int init_module()
+int __init init_module()
 {
     int retval = 0;
 
@@ -175,7 +176,7 @@ int init_module()
 }
 
 // Cleanup
-void cleanup_module()
+void __exit cleanup_module()
 {
     // Unregister netfilter hook
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)

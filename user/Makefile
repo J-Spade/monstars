@@ -4,8 +4,8 @@ SRC = monstars.c
 OUT = ../build/$(EXE)-$(KERNEL_VER)
 
 release:
-	gcc -s -Os $(SRC) -o $(OUT)
+	gcc -s -Os $(SRC) -static -o $(OUT)
 
 debug:
-	gcc -DDEBUG -Og -g $(SRC) -o $(OUT)
+	gcc -DDEBUG -Og -g $(SRC) -static -o $(OUT)
 
