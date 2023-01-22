@@ -12,4 +12,4 @@
 #define MAX_DATA_SIZE 64000  // a bit smaller than the maximum TCP/UDP payload sizes
 
 #define PROCFS_FILENAME "task"  // TODO: obfuscate?
-#define PROCFS_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+#define PROCFS_PERMISSIONS (S_IRUSR | S_IRGRP | S_IROTH)

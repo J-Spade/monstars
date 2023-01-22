@@ -15,12 +15,10 @@ int main()
         DEBUG_LOG("Failed to install MONSTARS_NF module!\n");
         retval = 1;
     }
-#ifdef DEBUG
     else
     {
         DEBUG_LOG("MONSTARS_NF installed!\n");
     }
-#endif
 
     return retval;
 }

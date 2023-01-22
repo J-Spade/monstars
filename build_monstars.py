@@ -17,6 +17,10 @@ DEFAULT_KO_NAME = "monstars_nf"
 KO_PRECOMPILED_H = "ko_precompiled.h"
 
 KERNEL_VERSIONS = [
+    "3.11.0-12-generic",
+    "3.13.0-24-generic",
+    "4.4.0-21-generic",
+    "4.15.0-20-generic",
     "5.15.0-56-generic",
 ]
 
@@ -88,7 +92,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-v", "--kernel-ver",
-        default=KERNEL_VERSIONS[0],
+        default=KERNEL_VERSIONS[-1],
         choices=KERNEL_VERSIONS,
         help="linux kernel version to build against",
     )
