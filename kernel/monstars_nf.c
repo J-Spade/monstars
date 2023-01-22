@@ -64,7 +64,15 @@ ssize_t write_callback(struct file* filep, const char __user* buf, size_t count,
 
 
 // The netfilter callback - checks for magic packets
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
 unsigned int nf_callback(void* priv, struct sk_buff* sockbuf, const struct nf_hook_state* state)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)
+unsigned int nf_callback(const struct nf_hook_ops* ops, struct sk_buff* sockbuf, const struct net_device* in,
+                    const struct net_device* out, int (*okfn)(struct sk_buff *))
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 0, 0)
+unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const struct net_device* in,
+                    const struct net_device* out, int (*okfn)(struct sk_buff *))
+#endif
 {
     unsigned int retval = NF_ACCEPT;
     struct iphdr *iph = NULL;

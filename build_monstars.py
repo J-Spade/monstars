@@ -25,8 +25,8 @@ KERNEL_VERSIONS = [
 ]
 
 KERNEL_C_FLAGS = {
-    "3": "-D__GNUC__=4 -fno-pie",
-    "4": "-fno-pie",
+    "3": "-D__GNUC__=4 -fno-pie -Wno-pointer-sign -Wno-attributes",
+    "4": "-fno-pie -Wno-pointer-sign -Wno-attributes",
 }
 
 
