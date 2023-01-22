@@ -1,49 +1,63 @@
 """Everybody get up, it's time to slam now!"""
 import argparse
+import base64
 import contextlib
 import socket
 
 MAGIC_SRC_PORT = 31337
+SOCKET_TIMEOUT = 10
+RESPONSE_SIZE = 4196
 
 SUPPORTED_CMDS = [
     "ping",
 ]
 
-SUPPORTED_PROTOS = [
-    "tcp",
-    "udp",
-]
-
-
 @contextlib.contextmanager
-def _client_socket(proto):
-    """helper function to create the client socket"""
-    sock_proto = socket.SOCK_STREAM if proto == "tcp" else socket.SOCK_DGRAM
-    sock = socket.socket(socket.AF_INET, sock_proto)
+def _tcp_listener():
+    """socket listening for the command response"""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(("0.0.0.0", MAGIC_SRC_PORT))
-    sock.settimeout(0)
+    sock.settimeout(SOCKET_TIMEOUT)
+    sock.listen(1)
     yield sock
     sock.close()
 
 
-def _send_magic(sock, ip, port, data):
-    """helper function to send the magic cmd packet"""
-    print(f"sending magic packet --> {ip}:{port}")
-    if sock.type == socket.SOCK_DGRAM:
-        sock.sendto(data, (ip, port))
-    # TODO: support TCP payload data (probably needs SOCK_RAW)
-    elif sock.type == socket.SOCK_STREAM:
+@contextlib.contextmanager
+def _udp_sender():
+    """socket for sending the command"""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(("0.0.0.0", MAGIC_SRC_PORT))
+    yield sock
+    sock.close()
+
+
+def _send_cmd(ip, port, msg):
+    """sends a magic cmd packet and returns the response"""
+    encoded = base64.b64encode(msg.encode("ascii")) + b"\x00"
+
+    with _tcp_listener() as tcp:
+        with _udp_sender() as udp:
+            print(f"sending magic packet --> {ip}:{port}")
+            udp.sendto(encoded, (ip, port))
+        print("waiting for reply...")
         try:
-            sock.connect((ip, port))
-        except BlockingIOError:
-            pass
+            sock, addr = tcp.accept()
+        except socket.timeout as err:
+            raise ConnectionError("No response received!") from err
+        response = b""
+        while data := sock.recv(4096):
+            response += data
+    return base64.b64decode(response).decode("ascii")
 
 
 def do_ping(args):
     """send a ping"""
-    with _client_socket(args.proto) as s:
-        _send_magic(s, args.ip, args.dest_port, b"PING")
-    # TODO: expect response pong
+    msg = "PING"
+    response = _send_cmd(args.ip, args.dest_port, msg)
+    if "PONG" not in response:
+        raise ValueError("Invalid response received!")
+    print(f"Received PONG from {args.ip}")
 
 
 if __name__ == "__main__":
@@ -59,12 +73,6 @@ if __name__ == "__main__":
         "-i", "--ip",
         required=True,
         help="IP address of host machine",
-    )
-    parser.add_argument(
-        "-p", "--proto",
-        choices=SUPPORTED_PROTOS,
-        default="udp",
-        help="transport-layer protocol to use",
     )
     parser.add_argument(
         "-d", "--dest-port",
