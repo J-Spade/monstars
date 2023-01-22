@@ -24,6 +24,11 @@ KERNEL_VERSIONS = [
     "5.15.0-56-generic",
 ]
 
+KERNEL_C_FLAGS = {
+    "3": "-D__GNUC__=4 -fno-pie",
+    "4": "-fno-pie",
+}
+
 
 def run_build(kernel_ver, ko_name, exe_name, debug):
     """Build it!"""
@@ -33,6 +38,7 @@ def run_build(kernel_ver, ko_name, exe_name, debug):
             "KERNEL_VER": kernel_ver,
             "MOD": ko_name,
             "EXE": exe_name,
+            "FLAGS": KERNEL_C_FLAGS.get(kernel_ver[0], ""),
         }
     )
     # Cleanup old build artifacts
