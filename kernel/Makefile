@@ -1,6 +1,9 @@
 # Allow the module to be built with an arbitrary name
 MOD ?= monstars_nf
 
+# Bogus signature
+CONFIG_MODULE_SIG = monstars
+
 # KBuild
 ifneq ($(KERNELRELEASE),)
 obj-m := $(MOD).o
