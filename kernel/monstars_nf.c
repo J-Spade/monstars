@@ -11,7 +11,6 @@
 #include <linux/string.h>
 #include <linux/tcp.h>
 #include <linux/udp.h>
-#include <linux/umh.h>
 #include <linux/version.h>
 
 #include <stddef.h>
@@ -45,7 +44,7 @@ ssize_t read_callback(struct file* filep, char __user* buf, size_t count, loff_t
     // Simplification: dump the whole task at once, always.
     if ((0 == *ppos) && (s_task_pending) && (count > len))
     {
-        if (copy_to_user(buf, s_current_task, len))
+        if (0 != copy_to_user(buf, s_current_task, len))
         {
             retval = -EFAULT;
         }
@@ -91,19 +90,19 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
     {
         if ((iph = ip_hdr(sockbuf)))
         {
-            if (IPPROTO_TCP == iph->protocol)
-            {
-                if ((tcph = (struct tcphdr *)((__u32 *)iph + iph->ihl)))
-                {
-                    src_port = ntohs(tcph->source);
-                    dst_port = ntohs(tcph->dest);
-                }
-                if ((data = (unsigned char *)tcp_hdr(sockbuf)))
-                {
-                    data += sizeof(struct tcphdr);
-                }
-            }
-            else if (IPPROTO_UDP == iph->protocol)
+            // if (IPPROTO_TCP == iph->protocol)
+            // {
+            //     if ((tcph = (struct tcphdr *)((__u32 *)iph + iph->ihl)))
+            //     {
+            //         src_port = ntohs(tcph->source);
+            //         dst_port = ntohs(tcph->dest);
+            //     }
+            //     if ((data = (unsigned char *)tcp_hdr(sockbuf)))
+            //     {
+            //         data += sizeof(struct tcphdr);
+            //     }
+            // }
+            if (IPPROTO_UDP == iph->protocol)
             {
                 if ((udph = (struct udphdr *)((__u32 *)iph + iph->ihl)))
                 {
@@ -151,7 +150,7 @@ int task_thread(void *data)
         {
             // spawn userland cmd handler
             KERNEL_LOG("MONSTARS_NF : Spawning usermode helper\n");
-            if (0!= call_usermodehelper("/usr/bin/python3", um_args, um_env, UMH_WAIT_PROC))
+            if (0 != call_usermodehelper("/usr/bin/python3", um_args, um_env, UMH_WAIT_PROC))
             {
                 KERNEL_LOG("MONSTARS_NF : Usermode helper exec failed\n");
             }
