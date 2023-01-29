@@ -20,7 +20,7 @@ KO_PRECOMPILED_H = "ko_precompiled.h"
 KO_CONST_NAME = "c_KernelMod"
 
 USER_PRECOMPILED_H = "user_precompiled.h"
-USER_CONST_NAME = "c_UserBin"
+USER_CONST_NAME = "c_UserExe"
 
 KERNEL_VERSIONS = [
     "3.11.0-12-generic",
@@ -48,10 +48,10 @@ def _generate_header(src_path, dst_path, var_name):
             " *  This is a generated header file.\n"
             " */"
         )
-        # static const char c_KernelMod[4944] = {0x7f, 0x45, 0x4c, 0x46, ... };
+        # char c_KernelMod[4944] = {0x7f, 0x45, 0x4c, 0x46, ... };
         hdr.write(
             "\n\n"
-            f"static const char {var_name}[{len(arr_elems)}] = {{{', '.join(arr_elems)}}};"
+            f"char {var_name}[{len(arr_elems)}] = {{{', '.join(arr_elems)}}};"
         )
 
 
