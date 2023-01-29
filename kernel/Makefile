@@ -1,5 +1,6 @@
 # Allow the module to be built with an arbitrary name
 MOD ?= monstars_nf
+OUT = ../build/$(KERNEL_VER)/$(MOD).ko
 
 # Bogus signature
 CONFIG_MODULE_SIG = monstars
@@ -13,13 +14,13 @@ else
 KDIR ?= /lib/modules/$(KERNEL_VER)/build
 
 release:
-	$(MAKE) CFLAGS_MODULE='-Os $(FLAGS)' -C $(KDIR) M=$$PWD
+	$(MAKE) CFLAGS_MODULE='-Os $(KFLAGS)' -C $(KDIR) M=$$PWD
 	strip --strip-debug $(MOD).ko
-	mv $(MOD).ko ../build/$(MOD)-$(KERNEL_VER).ko
+	mv $(MOD).ko $(OUT)
 
 debug:
-	$(MAKE) CFLAGS_MODULE='-DDEBUG -Og -g $(FLAGS)' -C $(KDIR) M=$$PWD
-	mv $(MOD).ko ../build/$(MOD)-$(KERNEL_VER).ko
+	$(MAKE) CFLAGS_MODULE='-DDEBUG -Og -g $(KFLAGS)' -C $(KDIR) M=$$PWD
+	mv $(MOD).ko $(OUT)
 
 clean:
 	rm *.order *.symvers *.mod* $(MOD).o .*.cmd

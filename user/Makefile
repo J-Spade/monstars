@@ -1,7 +1,7 @@
 KERNEL_VER ?= `uname -r`
-EXE ?= monstars
+USER_EXE ?= monstars
 SRC = monstars.c
-OUT = ../build/$(EXE)-$(KERNEL_VER)
+OUT = ../build/$(KERNEL_VER)/$(USER_EXE)
 
 release:
 	gcc -s -Os $(SRC) -static -o $(OUT)
