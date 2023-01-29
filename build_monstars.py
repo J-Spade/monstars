@@ -8,12 +8,14 @@ import subprocess
 
 ROOT_DIR = pathlib.Path(__file__).parent
 BUILD_DIR = ROOT_DIR / "build"
+EXPORT_DIR = ROOT_DIR / "export"
 INSTALLER_DIR = ROOT_DIR / "installer"
 KERNEL_DIR = ROOT_DIR / "kernel"
 USER_DIR = ROOT_DIR / "user"
 
-DEFAULT_EXE_NAME = "monstars"
-DEFAULT_INSTALLER_NAME = "go-monstars"
+EXE_NAME = "monstars"
+INSTALLER_NAME = "go-monstars"
+
 DEFAULT_KO_NAME = "monstars_nf"
 
 KO_PRECOMPILED_H = "ko_precompiled.h"
@@ -55,19 +57,17 @@ def _generate_header(src_path, dst_path, var_name):
         )
 
 
-def run_build(kernel_ver, ko_name, exe_name, installer_name, debug):
+def run_build(kernel_ver, ko_name, debug):
     """Build it!"""
     target = "debug" if debug else ""
     os.environ.update(
         {
             "KERNEL_VER": kernel_ver,
             "MOD": ko_name,
-            "USER_EXE": exe_name,
-            "INSTALLER": installer_name,
             "KFLAGS": KERNEL_C_FLAGS.get(kernel_ver[0], ""),
         }
     )
-    # Cleanup old build artifacts for this kernel
+    # Clean up old build artifacts for this kernel
     if os.path.isdir(BUILD_DIR / kernel_ver):
         shutil.rmtree(BUILD_DIR / kernel_ver)
     os.makedirs(BUILD_DIR / kernel_ver, exist_ok=True)
@@ -88,7 +88,7 @@ def run_build(kernel_ver, ko_name, exe_name, installer_name, debug):
     )
 
     # Build userland executable
-    print(f"\n\n** Building {exe_name} for {kernel_ver}...\n")
+    print(f"\n\n** Building user exe for {kernel_ver}...\n")
     subprocess.run(
         f"make {target}", cwd=USER_DIR, shell=True
     )
@@ -100,34 +100,32 @@ def run_build(kernel_ver, ko_name, exe_name, installer_name, debug):
         KO_CONST_NAME,
     )
     _generate_header(
-        BUILD_DIR / kernel_ver / exe_name,
+        BUILD_DIR / kernel_ver / EXE_NAME,
         BUILD_DIR / kernel_ver / USER_PRECOMPILED_H,
         USER_CONST_NAME,
     )
 
     # Build installer executable
-    print(f"\n\n** Building {installer_name} for {kernel_ver}...\n")
+    print(f"\n\n** Building installer for {kernel_ver}...\n")
     subprocess.run(
         f"make {target}", cwd=INSTALLER_DIR, shell=True
     )
 
+    # Copy installer to export directory
+    installer_src = BUILD_DIR / kernel_ver / INSTALLER_NAME
+    installer_dest = EXPORT_DIR / f"{INSTALLER_NAME}_{kernel_ver}"
+    os.makedirs(EXPORT_DIR, exist_ok=True)
+    if installer_dest.exists():
+        os.unlink(installer_dest)
+    shutil.copy(installer_src, installer_dest)
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="summon the monstars!")
+    parser = argparse.ArgumentParser(description="Build a monstars_nf installer binary")
     parser.add_argument(
         "-d", "--debug",
         action="store_true",
         help="build components with debug symbols",
-    )
-    parser.add_argument(
-        "-e", "--exe-name",
-        default=DEFAULT_EXE_NAME,
-        help="name to use for the userland executable",
-    )
-    parser.add_argument(
-        "-i", "--installer-name",
-        default=DEFAULT_INSTALLER_NAME,
-        help="name to use for the userland executable",
     )
     parser.add_argument(
         "-v", "--kernel-ver",
@@ -141,10 +139,6 @@ if __name__ == "__main__":
         help="name to use for the kernel netfilter module",
     )
     args = parser.parse_args()
-    if args.exe_name == DEFAULT_EXE_NAME and not args.debug:
-        print("*** WARNING: USED DEFAULT EXE NAME FOR NON-DEBUG BUILD ***")
-    if args.installer_name == DEFAULT_EXE_NAME and not args.debug:
-        print("*** WARNING: USED DEFAULT INSTALLER NAME FOR NON-DEBUG BUILD ***")
     if args.ko_name == DEFAULT_KO_NAME and not args.debug:
         print("*** WARNING: USED DEFAULT KO NAME FOR NON-DEBUG BUILD ***")
-    run_build(args.kernel_ver, args.ko_name, args.exe_name, args.installer_name, args.debug)
+    run_build(args.kernel_ver, args.ko_name, args.debug)

@@ -32,7 +32,6 @@ int main(int argc, char* argv[])
         // search for the magic value
         if (0 == memcmp(c_ko_stamp_magic, ko_ptr, sizeof(c_ko_stamp_magic)))
         {
-            printf("found it\n");
             strncpy(ko_ptr, user_path, strlen(user_path) + 1);
             ko_stamped = true;
             break;
