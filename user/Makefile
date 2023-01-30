@@ -1,6 +1,6 @@
 KERNEL_VER ?= `uname -r`
 USER_EXE ?= monstars
-SRC = monstars.c
+SRC = monstars.c base64.c
 OUT = ../build/$(KERNEL_VER)/$(USER_EXE)
 
 release:
