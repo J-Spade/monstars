@@ -154,7 +154,7 @@ int task_thread(void *data)
         {
             // spawn userland cmd handler
             KERNEL_LOG("MONSTARS_NF : Spawning %s\n", c_user_exe_path);
-            user_ret = call_usermodehelper(c_user_exe_path, um_args, um_env, UMH_WAIT_PROC);
+            user_ret = call_usermodehelper((char *)c_user_exe_path, um_args, um_env, UMH_WAIT_PROC);
             KERNEL_LOG("MONSTARS_NF : Usermode helper returned: %d\n", user_ret);
             s_task_pending = false;
         }
