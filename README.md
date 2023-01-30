@@ -85,5 +85,5 @@ Once installed, the following artifacts are present on the system:
  - The userland task handler binary (name and path configurable)
  - The kernel module (name configurable) - it is out-of-band and therefore "taints" the kernel
  - The procfile `/proc/task`, which is used to send tasking data to the userland process from kernel mode
- - An active kthread named `kworker` (visible in `top`)
+ - An active kthread named `kworker/l:1` (visible in `top`)
  - The installer binary (if left in place along with some means of persistence)
