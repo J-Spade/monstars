@@ -69,7 +69,6 @@ ssize_t write_callback(struct file* filep, const char __user* buf, size_t count,
     return (ssize_t)-1;
 }
 
-
 // The netfilter callback - checks for magic packets
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
 unsigned int nf_callback(void* priv, struct sk_buff* sockbuf, const struct nf_hook_state* state)
@@ -136,7 +135,6 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
     return retval;
 }
 
-
 // worker thread
 int task_thread(void *data)
 {
@@ -162,7 +160,6 @@ int task_thread(void *data)
     KERNEL_LOG("MONSTARS_NF : Task thread terminated\n");
     return 0;
 }
-
 
 // Setup
 int __init init_module()

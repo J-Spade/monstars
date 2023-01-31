@@ -53,7 +53,11 @@ def _send_cmd(ip, port, msg):
         response = b""
         while data := sock.recv(4096):
             response += data
-    return base64.b64decode(response)
+    decoded = base64.b64decode(response)
+    if decoded.startswith(b"ERROR"):
+        errno = int(decoded.split(b"ERROR: ")[1])
+        raise RuntimeError(os.strerror(errno))
+    return decoded
 
 
 def do_ping(args):

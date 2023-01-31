@@ -155,8 +155,11 @@ int main()
     response = do_task(cmd_str);
     if (NULL == response)
     {
+        // something went wrong; report the error
+        char errstr[25] = {0};
+        sprintf(errstr, "ERROR: %d", errno);
+        response = base64_encode(errstr, strlen(errstr), NULL);
         retval = -6;
-        goto cleanup;
     }
     free(cmd_str);
     cmd_str = NULL;
