@@ -25,6 +25,10 @@ USER_PRECOMPILED_H = "user_precompiled.h"
 USER_CONST_NAME = "c_UserExe"
 
 KERNEL_VERSIONS = [
+    # "2.6.32-754.el6.x86_64",
+    "3.10.0-123.el7.x86_64",
+    "3.10.0-327.el7.x86_64",
+    "3.10.0-514.el7.x86_64",
     "3.11.0-12-generic",
     "3.13.0-24-generic",
     "4.4.0-21-generic",
@@ -33,6 +37,7 @@ KERNEL_VERSIONS = [
 ]
 
 KERNEL_C_FLAGS = {
+    # "2": "-D__GNUC__=4 -fno-pie -Wno-pointer-sign -Wno-attributes -Wno-missing-attributes -mfentry",
     "3": "-D__GNUC__=4 -fno-pie -Wno-pointer-sign -Wno-attributes -Wno-missing-attributes -mfentry",
     "4": "-fno-pie -Wno-pointer-sign -Wno-attributes -mfentry",
 }
