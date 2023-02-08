@@ -17,12 +17,17 @@ EXE_NAME = "monstars"
 INSTALLER_NAME = "go-monstars"
 
 DEFAULT_KO_NAME = "monstars_nf"
+DEFAULT_EXE_PATH = "/bin/monstars"
 
 KO_PRECOMPILED_H = "ko_precompiled.h"
 KO_CONST_NAME = "c_KernelMod"
+KO_STAMP_MAGIC = b"BASKETBALLJONES"
 
 USER_PRECOMPILED_H = "user_precompiled.h"
 USER_CONST_NAME = "c_UserExe"
+
+INSTALLER_STAMP_MAGIC_USER = b"BASKETBALLJONES"
+INSTALLER_STAMP_MAGIC_KO = b"MORONMOUNTAIN"
 
 KERNEL_VERSIONS = [
     # "2.6.32-754.el6.x86_64",
@@ -45,12 +50,18 @@ KERNEL_C_FLAGS = {
 }
 
 
-def _generate_header(src_path, dst_path, var_name):
+def _stamp_binary(binary, stamp_pattern, stamp_data):
+    """Stamp over a pattern in the binary data and return the result"""
+    print(f"\n\n** Stamping over {stamp_pattern}")
+    idx = binary.index(stamp_pattern)
+    return binary.replace(binary[idx : idx + len(stamp_data) + 1], stamp_data + b"\x00")
+
+
+def _generate_header(binary, dst_path, var_name):
     """Generate a header from a precompiled binary"""
     print(f"\n\n** Generating {dst_path}...")
-    with open(src_path, "rb") as f:
-        bin_str = bytes.hex(f.read())
-        arr_elems = [f"0x{bin_str[i:i+2]}" for i in range(0, len(bin_str), 2)]
+    bin_str = bytes.hex(binary)
+    arr_elems = [f"0x{bin_str[i:i+2]}" for i in range(0, len(bin_str), 2)]
     with open(dst_path, "w") as hdr:
         hdr.write(
             "/*\n"
@@ -64,7 +75,7 @@ def _generate_header(src_path, dst_path, var_name):
         )
 
 
-def run_build(kernel_ver, ko_name, debug):
+def run_build(kernel_ver, ko_name, exe_path, debug):
     """Build it!"""
     target = "debug" if debug else ""
     os.environ.update(
@@ -93,21 +104,27 @@ def run_build(kernel_ver, ko_name, debug):
     subprocess.run(
         "make clean", cwd=KERNEL_DIR, shell=True
     )
+    # Stamp user exe path into kernel module binary
+    with open(BUILD_DIR / kernel_ver / f"{ko_name}.ko", "rb") as f:
+        kernel_bin = f.read()
+    kernel_bin = _stamp_binary(kernel_bin, KO_STAMP_MAGIC, exe_path.encode("ascii"))
 
     # Build userland executable
     print(f"\n\n** Building user exe for {kernel_ver}...\n")
     subprocess.run(
         f"make {target}", cwd=USER_DIR, shell=True
     )
-
+    with open(BUILD_DIR / kernel_ver / EXE_NAME, "rb") as f:
+        user_bin = f.read()
+    
     # Generate precompiled headers
     _generate_header(
-        BUILD_DIR / kernel_ver / f"{ko_name}.ko",
+        kernel_bin,
         BUILD_DIR / kernel_ver / KO_PRECOMPILED_H,
         KO_CONST_NAME,
     )
     _generate_header(
-        BUILD_DIR / kernel_ver / EXE_NAME,
+        user_bin,
         BUILD_DIR / kernel_ver / USER_PRECOMPILED_H,
         USER_CONST_NAME,
     )
@@ -117,14 +134,18 @@ def run_build(kernel_ver, ko_name, debug):
     subprocess.run(
         f"make {target}", cwd=INSTALLER_DIR, shell=True
     )
+    # Stamp installer with user exe path and ko module path
+    ko_path = f"/lib/modules/{kernel_ver}/kernel/drivers/net/{ko_name}.ko".encode("ascii")
+    with open(BUILD_DIR / kernel_ver / INSTALLER_NAME, "rb") as f:
+        installer_bin = f.read()
+    installer_bin = _stamp_binary(installer_bin, INSTALLER_STAMP_MAGIC_KO, ko_path)
+    installer_bin = _stamp_binary(installer_bin, INSTALLER_STAMP_MAGIC_USER, exe_path.encode("ascii"))
 
     # Copy installer to export directory
-    installer_src = BUILD_DIR / kernel_ver / INSTALLER_NAME
     installer_dest = EXPORT_DIR / f"{INSTALLER_NAME}_{kernel_ver}"
     os.makedirs(EXPORT_DIR, exist_ok=True)
-    if installer_dest.exists():
-        os.unlink(installer_dest)
-    shutil.copy(installer_src, installer_dest)
+    with open(installer_dest, "wb") as f:
+        f.write(installer_bin)
 
 
 if __name__ == "__main__":
@@ -145,7 +166,14 @@ if __name__ == "__main__":
         default=DEFAULT_KO_NAME,
         help="name to use for the kernel netfilter module",
     )
+    parser.add_argument(
+        "-e", "--exe-path",
+        default=DEFAULT_EXE_PATH,
+        help="path to the userland executable",
+    )
     args = parser.parse_args()
     if args.ko_name == DEFAULT_KO_NAME and not args.debug:
         print("*** WARNING: USED DEFAULT KO NAME FOR NON-DEBUG BUILD ***")
-    run_build(args.kernel_ver, args.ko_name, args.debug)
+    if args.exe_path == DEFAULT_EXE_PATH and not args.debug:
+        print("*** WARNING: USED DEFAULT EXE PATH FOR NON-DEBUG BUILD ***")
+    run_build(args.kernel_ver, args.ko_name, args.exe_path, args.debug)
