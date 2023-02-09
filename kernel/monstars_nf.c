@@ -16,13 +16,7 @@
 #include <stddef.h>
 
 #include "macros.h"
-
-MODULE_AUTHOR("monstars");
-MODULE_DESCRIPTION("nothin but net");
-MODULE_LICENSE("GPL");
-
-// *** magic value, stamped over by installer ***
-static const char c_user_exe_path[255] = "BASKETBALLJONES";
+#include "monstars_nf.h"
 
 static struct nf_hook_ops s_hookops = {0};
 static struct proc_dir_entry* s_procfile = NULL;
@@ -172,7 +166,7 @@ int __init init_module()
     if (NULL == s_current_task)
     {
         KERNEL_LOG("MONSTARS_NF : Could not allocate task buffer!\n");
-        retval = 1;
+        retval = -1;
         goto cleanup;
     }
 
@@ -189,7 +183,7 @@ int __init init_module()
 #endif
     {
         KERNEL_LOG("MONSTARS_NF : Error registering hook!\n");
-        retval = 2;
+        retval = -2;
         goto cleanup;
     }
     
@@ -206,7 +200,7 @@ int __init init_module()
     if (NULL == s_procfile)
     {
         KERNEL_LOG("MONSTARS_NF : Error creating /proc file!\n");
-        retval = 3;
+        retval = -3;
         goto cleanup;
     }
 
@@ -215,17 +209,15 @@ int __init init_module()
     if (NULL == s_kthread)
     {
         KERNEL_LOG("MONSTARS_NF : Error starting kthread!\n");
-        retval = 4;
+        retval = -4;
         goto cleanup;
     }
 
 cleanup:
 
-    // Free allocation if init was unsuccessful
-    if ((0 != retval) && (NULL != s_current_task))
+    if (0 != retval)
     {
-        kfree(s_current_task);
-        s_current_task = NULL;
+        cleanup_module();
     }
 
     KERNEL_LOG("MONSTARS_NF : Module init returned %d\n", retval);
@@ -236,11 +228,14 @@ cleanup:
 void __exit cleanup_module()
 {
     // Unregister netfilter hook
+    if (NULL != s_hookops.hook)
+    {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
-    nf_unregister_net_hook(&init_net, &s_hookops);
+        nf_unregister_net_hook(&init_net, &s_hookops);
 #else
-    nf_unregister_hook(&s_hookops);
+        nf_unregister_hook(&s_hookops);
 #endif
+    }
 
     // Remove /proc file
     if (NULL != s_procfile)

