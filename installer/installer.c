@@ -145,16 +145,8 @@ int persist_kernel_mod()
         {
             if ((strlen(ko_name) + 1) == fprintf(modules, "%s\n", ko_name))
             {
-                depmod_ret = system("depmod");  // update the kernel module database
-                if (0 == depmod_ret)
-                {
-                    DEBUG_LOG("Added %s to /etc/modules\n", ko_name);
-                    retval = 0;
-                }
-                else
-                {
-                    DEBUG_LOG("depmod returned: %d\n", depmod_ret);
-                }
+                DEBUG_LOG("Added %s to /etc/modules\n", ko_name);
+                retval = 0;
             }
             else
             {
@@ -199,6 +191,10 @@ int persist_kernel_mod()
     {
         DEBUG_LOG("Could not determine linux distro flavor!\n");
     }
+
+    // Invoke depmod to update the kernel module database
+    depmod_ret = system("depmod");
+    DEBUG_LOG("depmod returned: %d\n", depmod_ret);
 
 exit:
     return retval;
