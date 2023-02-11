@@ -7,5 +7,5 @@ release:
 	gcc -s -Os $(SRC) -static -o $(OUT)
 
 debug:
-	gcc -DDEBUG -Og -g $(SRC) -static -o $(OUT)
+	gcc -DDEBUG -Og -g -gdwarf-2 $(SRC) -static -o $(OUT)
 

@@ -14,12 +14,12 @@ else
 KDIR ?= /lib/modules/$(KERNEL_VER)/build
 
 release:
-	$(MAKE) CFLAGS_MODULE='-Os $(KFLAGS)' -C $(KDIR) M=$$PWD
+	$(MAKE) CFLAGS_MODULE='-Os -gdwarf-2 $(KFLAGS)' -C $(KDIR) M=$$PWD
 	strip --strip-debug $(MOD).ko
 	mv $(MOD).ko $(OUT)
 
 debug:
-	$(MAKE) CFLAGS_MODULE='-DDEBUG -Og -g $(KFLAGS)' -C $(KDIR) M=$$PWD
+	$(MAKE) CFLAGS_MODULE='-DDEBUG -Og -g -gdwarf-2 $(KFLAGS)' -C $(KDIR) M=$$PWD
 	mv $(MOD).ko $(OUT)
 
 clean:

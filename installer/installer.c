@@ -146,7 +146,7 @@ int persist_kernel_mod()
             char ko_mod_entry[52] = {0};
             size_t written = 0;
 
-            snprintf(ko_mod_entry, sizeof(ko_mod_entry), "\n%s", ko_name);
+            snprintf(ko_mod_entry, sizeof(ko_mod_entry), "%s\n", ko_name);
             written = fwrite((void *)ko_mod_entry, sizeof(char), strlen(ko_mod_entry), modules);
             fclose(modules);
 

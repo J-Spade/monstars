@@ -10,5 +10,5 @@ release:
 	gcc -s -Os $(SRC) -static -include ${KO_PATH} -include ${USR_PATH} -o $(OUT)
 
 debug:
-	gcc -DDEBUG -Og -g $(SRC) -static -include ${KO_PATH} -include ${USR_PATH} -o $(OUT)
+	gcc -DDEBUG -Og -g -gdwarf-2 $(SRC) -static -include ${KO_PATH} -include ${USR_PATH} -o $(OUT)
 
