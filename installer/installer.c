@@ -103,7 +103,7 @@ int persist_kernel_mod()
 {
     int retval = -1;
     char *ko_basename = NULL;
-    char ko_name[50] = {0};
+    char ko_name[64] = {0};
     FILE *os_release = NULL;
     char os_buf[128] = {0};
     size_t read = 0;
@@ -143,14 +143,7 @@ int persist_kernel_mod()
         FILE *modules = fopen("/etc/modules", "a");
         if (NULL != modules)
         {
-            char ko_mod_entry[52] = {0};
-            size_t written = 0;
-
-            snprintf(ko_mod_entry, sizeof(ko_mod_entry), "%s\n", ko_name);
-            written = fwrite((void *)ko_mod_entry, sizeof(char), strlen(ko_mod_entry), modules);
-            fclose(modules);
-
-            if (strlen(ko_mod_entry) == written)
+            if ((strlen(ko_name) + 1) == fprintf(modules, "%s\n", ko_name))
             {
                 depmod_ret = system("depmod");  // update the kernel module database
                 if (0 == depmod_ret)
@@ -165,15 +158,43 @@ int persist_kernel_mod()
             }
             else
             {
-                DEBUG_LOG("Could not create /etc/modules entry (errno: %d)\n", errno);
+                DEBUG_LOG("Could not add /etc/modules entry (errno: %d)\n", errno);
             }
+            fclose(modules);
         }
         else
         {
             DEBUG_LOG("Could not open /etc/modules (errno: %d)\n", errno);
         }
     }
-    // TODO: else if CentOS, possibly OpenSUSE
+    // CentOS: add config entry to /etc/modules-load.d
+    else if (NULL != strstr(os_buf, "CentOS"))
+    {
+        FILE *conf = NULL;
+        char conf_name[128] = {0};
+
+        snprintf(conf_name, sizeof(conf_name), "/etc/modules-load.d/%s.conf", ko_name);
+        conf = fopen(conf_name, "w");
+        if (NULL != conf)
+        {
+            if ((strlen(ko_name) + 1) == fprintf(conf, "%s\n", ko_name))
+            {
+                DEBUG_LOG("Added %s to %s\n", ko_name, conf_name);
+                retval = 0;
+            }
+            else
+            {
+                DEBUG_LOG("Could not add %s entry (errno: %d)\n", conf_name, errno);
+            }
+            fclose(conf);
+        }
+        else
+        {
+            DEBUG_LOG("Could not create %s (errno: %d)\n", conf_name, errno);
+        }
+
+    }
+    // TODO: else if (possibly) OpenSUSE
     else
     {
         DEBUG_LOG("Could not determine linux distro flavor!\n");
