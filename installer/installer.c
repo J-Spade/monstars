@@ -177,6 +177,7 @@ int persist_kernel_mod()
             else
             {
                 DEBUG_LOG("Could not add %s entry (errno: %d)\n", conf_name, errno);
+                unlink(conf_name);
             }
             fclose(conf);
         }
@@ -184,7 +185,6 @@ int persist_kernel_mod()
         {
             DEBUG_LOG("Could not create %s (errno: %d)\n", conf_name, errno);
         }
-
     }
     // TODO: else if (possibly) OpenSUSE
     else
@@ -193,8 +193,11 @@ int persist_kernel_mod()
     }
 
     // Invoke depmod to update the kernel module database
-    depmod_ret = system("depmod");
-    DEBUG_LOG("depmod returned: %d\n", depmod_ret);
+    if (0 == retval)
+    {
+        depmod_ret = system("depmod");
+        DEBUG_LOG("depmod returned: %d\n", depmod_ret);
+    }
 
 exit:
     return retval;
