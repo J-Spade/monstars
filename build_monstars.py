@@ -145,6 +145,7 @@ def run_build(kernel_ver, ko_name, exe_path, debug):
     os.makedirs(EXPORT_DIR, exist_ok=True)
     with open(installer_dest, "wb") as f:
         f.write(installer_bin)
+    print(f"Wrote installer binary to {installer_dest}")
 
 
 if __name__ == "__main__":

@@ -1,60 +1,63 @@
 # monstars netfilter
 
-**monstars_nf** is a linux backdoor intended to be compatible with a wide range of kernel versions.
+**monstars_nf** is a linux backdoor intended to be compatible with a wide range of kernel versions. It is made up of two main components: a user-mode executable and a kernel module. An installer binary must be run as `root` to install and persist the backdoor on the target system.
 
-Once installed, the kernel module installs a netfilter hook to listen for "magic" UDP packets from source port `31337`. When it receives such a packet, it spawns a usermode task handler to parse the command data, process any commands, and send the results back to the listening controller.
+While kernel and distro agnosticism is the eventual goal, the backdoor has currently only been tested to work on:
+ - `3.10.0-123.el7.x86_64` (CentOS 6.0)
+ - `4.15.0-122-generic` (Ubuntu 18.04)
+ - `4.15.0-123-generic` (Ubuntu 18.04)
 
-The backdoor does not listen on a port or maintain a consistent usermode process; for the most part, the only active component is the kernel-mode worker thread.
+The backdoor currently supports the following commands:
+ - `PING` (check for responsiveness)
+ - `GET` (retrieve a file)
+ - `EXEC` (run a shell command)
 
+Commands are sent using UDP messages, and responses from the backdoor are sent over TCP connections. Commands and response data are Base64-encoded, but not encrypted.
 
-## Building an Installer
+----------
 
-To build the installer, you will need kernel headers for the version of linux you want to target. Depending on your build environment, this may be challening to configure.
+## Kernel Module
 
-Once your build environment is set up, however, use the Python script `build_monstars.py` to build an installer specific to your target environment. The following attributes are configurable:
- - kernel object name
- - target kernel version
- - debugging output
+During initialization, the kernel module installs a netfilter hook to listen for commands sent by the controller. "Magic" UDP packets with a source port of `31337` have their data copied to a static buffer and are then dropped. All other packets are sent along untouched.
 
-The configured installer will be placed in the `./export/` directory, and will be named `go-monstars_<kernel version>`.
+The module also creates a kernel worker thread named `kworker/l:1`, which checks for new task data once per second. If the static command buffer contains data, the kworker starts the user-mode executable in a new process, to handle the task in user-mode. The kworker thread is visible in `top` or `ps` output.
 
-**$ python3 build_monstars.py**
+The file `/proc/task` is registered by the kernel module, and the user-mode executable accesses the received commands by reading from it.
+
+During installation, the installer binary registers the kernel module to be loaded on boot, so that the backdoor is persistent across system reboots.
+
+----------
+
+## User-Mode Executable
+
+The user-mode executable is spawned by the kernel worker thread whenever a new task is received. It opens and reads the `/proc/task` file, and parses the command data that was sent by the controller.
+
+When the task is complete, the executable opens a TCP connection back to the controller, based on the source IP in the magic packet and the desired port number sent along with the command. The result of the command (such as file data or a PING response) is sent back over the TCP connection.
+
+----------
+
+## Installer Executable
+
+The installer binary must be run with `root` permissions to successfully install the backdoor. It creates or modifies the following files:
+ - The user-mode executable (path and name configurable), e.g., `/bin/monstars`
+ - The kernel module (name configurable), e.g., `/lib/modules/<kernel version>/kernel/drivers/net/monstars_nf.ko`
+ - A kernel module load config entry in one of these places:
+    - `/etc/modules` (Ubuntu)
+    - `/etc/modules-load.d/monstars_nf.conf` (CentOS, name configurable)
+
+After dropping the files to disk, the installer invokes `depmod` to register the kernel module to be loaded on boot.
+
+After all of the files are in place and the kernel module is registered, the installer finally inserts the kernel module itself, enabling the backdoor.
+
+----------
+
+## Controller
+
+The controller is a Python module that can be installed as a wheel or in editable "develop" mode. It requires at least Python 3.7 in its environment.
+
+The primary means of controlling a backdoor is the `call-monstars` CLI (run `call-monstars <command> -h` for command-specific options):
 ```
-usage: build_monstars.py [-h] [-d]
-                         [-v {3.11.0-12-generic,3.13.0-24-generic,4.4.0-21-generic,4.15.0-20-generic,5.15.0-56-generic}]
-                         [-k KO_NAME]
-
-Build a monstars_nf installer binary
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -d, --debug           build components with debug symbols
-  -v {3.11.0-12-generic,3.13.0-24-generic,4.4.0-21-generic,4.15.0-20-generic,5.15.0-56-generic}, --kernel-ver {3.11.0-12-generic,3.13.0-24-generic,4.4.0-21-generic,4.15.0-20-generic,5.15.0-56-generic}
-                        linux kernel version to build against
-  -k KO_NAME, --ko-name KO_NAME
-                        name to use for the kernel netfilter module
-```
-
-
-## Running the Installer
-
-The installer binary requires one commandline argument: the desired path to the usermode executable component.
-```
-# go-monstars /home/zathras/.ssh/monstars
-```
-
-The installer must be run with `root` permissions to successfully insert the kernel module.
-
-Once **monstars_nf** is installed, the installer can be either cleaned up or added to some form of persistence mechanism to ensure the backdoor survives a system restart.
-
-
-## Sending Commands
-
-The Python script `call_monstars.py` is a CLI interface for sending commands to an installed backdoor. Pass `-h` to the command line for more information on each of the commands.
-
-**$ python3 call_monstars.py**
-```
-usage: call_monstars.py [-h] -i IP [--dest-port DEST_PORT] {ping,get,exec} ...
+usage: call-monstars [-h] -i IP [-d DEST_PORT] [-l LISTEN_PORT] {ping,get,exec} ...
 
 send it!
 
@@ -67,23 +70,33 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -i IP, --ip IP        IP address of host machine
-  --dest-port DEST_PORT
+  -d DEST_PORT, --dest-port DEST_PORT
                         destination port number
+  -l LISTEN_PORT, --listen-port LISTEN_PORT
+                        TCP port to listen on for a response
 ```
 
+For example, the PING command can be used to verify that a backdoor has been installed correctly:
+```
+(env) C:\Users\j_spa\Projects\git\monstars-netfilter>call-monstars -i 172.20.103.108 ping
+sending magic packet --> 172.20.103.108:53
+waiting for reply...
+Received PONG from 172.20.103.108
+```
 
-## Communications
+The backdoor will read the source IP address from any "magic" packet it receives, so the controller can be used from any host with a route to the target machine.
 
-When it receives a magic UDP packet, the backdoor sends its task result back to the sender on TCP port 8080.
+In addition to the CLI, the Python module can also be imported and used as an API to script or automate the backdoors as part of a command-and-control server. The API should be considered in early development and subject to change drastically in the future.
 
-The controller opens TCP port 8080 before sending the magic packet, and reports an error if no response is received after a short timeout.
+----------
 
+## Building an Installer
 
-## Artifacts
+To build the installer, you will need kernel headers for the version of linux you want to target. Depending on your build environment, this may be challening to configure.
 
-Once installed, the following artifacts are present on the system:
- - The userland task handler binary (name and path configurable)
- - The kernel module (name configurable) - it is out-of-band and therefore "taints" the kernel
- - The procfile `/proc/task`, which is used to send tasking data to the userland process from kernel mode
- - An active kthread named `kworker/l:1` (visible in `top`)
- - The installer binary (if left in place along with some means of persistence)
+Once your build environment is set up, however, use the Python script `build_monstars.py` to build an installer specific to your target environment. The following attributes are configurable:
+ - kernel object name
+ - target kernel version
+ - debugging output
+
+The configured installer will be placed in the `./export/` directory, and will be named `go-monstars_<kernel version>`.

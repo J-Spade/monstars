@@ -1,7 +1,10 @@
+__pycache__/
+.vscode/
 build/
+env/
 export/
-*.pyc
+*.egg-info/
+*.ko
 *.o
 *.order
-*.ko
-.vscode/
+*.pyc

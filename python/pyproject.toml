@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "monstars"
+version = "0.1.0"
+description = "welcome to the jam"
+
+[project.scripts]
+call-monstars = "monstars.controller:main"
