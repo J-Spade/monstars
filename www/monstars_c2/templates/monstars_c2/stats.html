@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'monstars/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Player Stats: {{ player.hostname }}</title>
+  </head>
+  <body>
+    <a href="./../">Back to Lineup</a>
+    <h1>{{ player.hostname }}</h1>
+    <p><img src="{% static 'monstars/images/pound.jpg' %}" title="we don't play defense" /></p>
+    <p>Player Birthday: {{ player.birthday }}</p>
+    {% if player.active %}
+        <p style="color:#00ff00"><b>Status: Active</b></p>
+    {% else %}
+        <p style="color: red"><b>Status: Benched</b></p>
+    {% endif %}
+
+    <table style="width: 50%; margin-left: auto; margin-right: auto;">
+        <tr>
+            <td style="background: none;">
+                <form action="{% url 'makeplay' player.id %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>New Play</h2></legend>
+                    {% if error_msg %}
+                    <p style="color: red"><b>{{ error_msg }}</b></p>
+                    {% endif %}
+                    <select id="play" name="play" size="1">
+                        <option value="PING" selcted>PING</option>
+                        <option value="GET">GET</option>
+                        <option value="EXEC">EXEC</option>
+                    </select>
+                    <br /><br />
+                    <label for="detail">Detail:</label>
+                    <input type="text" id="detail" name="detail" size="80" />
+                    <br /><br />
+                    <label for="dest_port">Slam (UDP):</label>
+                    <input type="text" id="slamport" name="slamport" size="5" value="53" />
+                    <label for="dest_port">Jam (TCP):</label>
+                    <input type="text" id="jamport" name="jamport" size="5" value="8080" />
+                    <br /><br />
+                    <input type="submit" value="SLAM!" />
+                    <br /><br />
+                </form>
+            </td>
+        </tr>
+    </table>
+
+    <h2>Play History:</h2>
+    {% if plays %}
+        <table>
+            <tr>
+                <th>Time</th>
+                <th>Play</th>
+                <th>Scored</th>
+                <th>Detail</th>
+                <th>Penalty</th>
+            </tr>
+            {% for play in plays %}
+                <tr>
+                    <td>{{ play.play_time }}</td>
+                    <td>{{ play.verb }}</td>
+                    {% if play.scored %}
+                        <td>Yes</td>
+                    {% else %}
+                        <td>No</td>td>
+                    {% endif %}
+                    {% if play.filepath %}
+                        <td><a href="{% static play.filepath %}">{{ play.detail }}</a></td>
+                    {% else %}
+                        <td>{{ play.detail }}</td>
+                    {% endif %}
+                    <td>{{ play.penalty }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>{{ player.hostname }} has not made any plays!</p>
+    {% endif %}
+
+    <br /><br />
+    <form action="{% url 'fire' player.id %}" method="get">
+        <p>
+            <button type="submit" onclick="return confirm('Send this player back to Moron Mountain?');">
+                Fire {{ player.hostname }}
+            </button>
+        </p>
+    </form>
+
+  </body>
+</html>

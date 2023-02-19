@@ -1,8 +1,10 @@
 __pycache__/
+_www/
 .vscode/
 build/
 env/
 export/
+nixenv/
 *.egg-info/
 *.ko
 *.o

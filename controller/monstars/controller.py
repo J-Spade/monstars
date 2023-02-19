@@ -88,7 +88,9 @@ def do_exec(ip, dest_port, listen_port, cmd, **kwargs):
     """run a system command"""
     msg = f"EXEC {cmd}"
     response = _send_cmd(msg, ip, dest_port, listen_port).decode("ascii")
-    print(f"Command on {ip} returned: {response}")
+    errno = int(response)
+    if errno != 0:
+        raise RuntimeError(os.strerror(errno))
 
 
 def main():
