@@ -42,7 +42,7 @@ def signout(request):
 
 @login_required(redirect_field_name=None)
 def players(request):
-    lineup = Player.objects.order_by("-hostname")
+    lineup = Player.objects.order_by("hostname")
     return render(
         request, "monstars_c2/players.html", {"lineup": lineup}
     )

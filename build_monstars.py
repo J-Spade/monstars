@@ -40,6 +40,7 @@ KERNEL_VERSIONS = [
     "4.15.0-20-generic",
     "4.15.0-122-generic",
     "4.15.0-123-generic",
+    "4.15.0-204-generic",
 ]
 
 KERNEL_C_FLAGS = {

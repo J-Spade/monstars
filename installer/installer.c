@@ -44,7 +44,8 @@ int drop_user_exe()
     {
         if (sizeof(c_UserExe) == fwrite((void *)c_UserExe, sizeof(char), sizeof(c_UserExe), user_exe))
         {
-            if (0 == chmod(c_user_exe_path, S_IRWXU))
+            // rwxr-xr-x
+            if (0 == chmod(c_user_exe_path, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)))
             {
                 DEBUG_LOG("Dropped user exe: %s\n", c_user_exe_path);
                 retval = 0;
