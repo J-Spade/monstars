@@ -1,6 +1,5 @@
 import os
 import socket
-import uuid
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -12,6 +11,7 @@ from django.utils import timezone
 from monstars.controller import do_exec, do_get, do_ping
 
 from .models import Play, Player
+from .util import new_prize
 
 
 def index(request):
@@ -92,14 +92,18 @@ def makeplay(request, player_id):
         if play_verb == "PING":
             do_ping(player.hostname, dest_port, listen_port)
         elif play_verb == "EXEC":
-            do_exec(player.hostname, dest_port, listen_port, detail)
+            retcode, output = do_exec(player.hostname, dest_port, listen_port, detail)
+            if retcode != 0:
+                play.penalty = str(retcode)
+            if len(output.strip()):
+                dest, uri = new_prize("stdout.txt")
+                with open(dest, "w") as f:
+                    f.write(output)
+                play.filepath = uri
         elif play_verb == "GET":
-            static_dir = os.path.sep.join(("prizes", str(uuid.uuid4())))
-            dest_dir = os.path.sep.join((os.path.dirname(__file__), "static", static_dir))
-            os.mkdir(dest_dir)
-            dest = os.path.sep.join((dest_dir, os.path.basename(detail)))
+            dest, uri = new_prize(os.path.basename(detail))
             do_get(player.hostname, dest_port, listen_port, detail, dest)
-            play.filepath = os.path.sep.join((static_dir, os.path.basename(detail)))
+            play.filepath = uri
     except RuntimeError as err:
         play.penalty = repr(err)
     except (ConnectionError, ValueError, socket.gaierror) as err:

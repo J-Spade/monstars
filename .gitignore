@@ -5,6 +5,7 @@ build/
 env/
 export/
 nixenv/
+www/monstars_c2/static/prizes/
 *.egg-info/
 *.ko
 *.o
