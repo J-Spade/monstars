@@ -3,9 +3,11 @@
 **monstars_nf** is a linux backdoor intended to be compatible with a wide range of kernel versions. It is made up of two main components: a user-mode executable and a kernel module. An installer binary must be run as `root` to install and persist the backdoor on the target system.
 
 While kernel and distro agnosticism is the eventual goal, the backdoor has currently only been tested to work on:
- - `3.10.0-123.el7.x86_64` (CentOS 6.0)
- - `4.15.0-122-generic` (Ubuntu 18.04)
- - `4.15.0-123-generic` (Ubuntu 18.04)
+ - `3.10.0-123.el7.x86_64`
+ - `3.10.0-517.el7.x86_64`
+ - `4.15.0-122-generic`
+ - `4.15.0-123-generic`
+ - `4.15.0-204-generic`
 
 The backdoor currently supports the following commands:
  - `PING` (check for responsiveness)
@@ -87,6 +89,12 @@ Received PONG from 172.20.103.108
 The backdoor will read the source IP address from any "magic" packet it receives, so the controller can be used from any host with a route to the target machine.
 
 In addition to the CLI, the Python module can also be imported and used as an API to script or automate the backdoors as part of a command-and-control server. The API should be considered in early development and subject to change drastically in the future.
+
+----------
+
+## C2 Web Server
+
+The C2 server is a barebones Django application. The view models wrap the Python API, providing a nostalgic user interface for controlling netfilter backdoors installed on various systems.
 
 ----------
 

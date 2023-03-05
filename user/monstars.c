@@ -58,7 +58,7 @@ char *do_task(char *cmd_str)
     {
         char *out_buf = (char *)calloc(MAX_EXEC_OUTPUT + 1, sizeof(char));   // null terminator
         char *res_str = (char *)calloc(MAX_EXEC_OUTPUT + 16, sizeof(char));  // + space for int
-        if (NULL != out_buf && NULL != res_str)
+        if ((NULL != out_buf) && (NULL != res_str))
         {
             char *cmd = cmd_str + 5;
             FILE *out  = popen(cmd, "r");
