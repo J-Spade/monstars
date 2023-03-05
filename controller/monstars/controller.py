@@ -89,8 +89,11 @@ def do_exec(ip, dest_port, listen_port, cmd, **kwargs):
     msg = f"EXEC {cmd}"
     response = _send_cmd(msg, ip, dest_port, listen_port).decode("ascii")
     try:
-        errno, output = response.split(";")
-        errno = int(errno)
+        if ";" in response:
+            errno, output = response.split(";", 1)
+        else:
+            errno = int(response)
+            output = "[output not captured]"
     except Exception:
         raise RuntimeError("Invalid command output rececived!")
     print(f"\nCommand returned: {errno}")
