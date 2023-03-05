@@ -64,10 +64,10 @@
                     {% if play.scored %}
                         <td>Yes</td>
                     {% else %}
-                        <td>No</td>td>
+                        <td>No</td>
                     {% endif %}
                     {% if play.filepath %}
-                        <td><a href="{% static play.filepath %}">{{ play.detail }}</a></td>
+                        <td><a href="../../{{ play.filepath }}/">{{ play.detail }}</a></td>
                     {% else %}
                         <td>{{ play.detail }}</td>
                     {% endif %}

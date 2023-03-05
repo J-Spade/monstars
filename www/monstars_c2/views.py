@@ -3,7 +3,7 @@ import socket
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
@@ -11,7 +11,7 @@ from django.utils import timezone
 from monstars.controller import do_exec, do_get, do_ping
 
 from .models import Play, Player
-from .util import new_prize
+from .util import get_prize, new_prize
 
 
 def index(request):
@@ -40,7 +40,7 @@ def signout(request):
     return HttpResponseRedirect(reverse("index"))
 
 
-@login_required(redirect_field_name=None)
+@login_required(login_url="/", redirect_field_name=None)
 def players(request):
     lineup = Player.objects.order_by("hostname")
     return render(
@@ -48,7 +48,7 @@ def players(request):
     )
 
 
-@login_required(redirect_field_name=None)
+@login_required(login_url="/", redirect_field_name=None)
 def stats(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
     return render(
@@ -61,7 +61,7 @@ def stats(request, player_id):
     )
 
 
-@login_required(redirect_field_name=None)
+@login_required(login_url="/", redirect_field_name=None)
 def makeplay(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
     play_time = timezone.now()
@@ -117,7 +117,7 @@ def makeplay(request, player_id):
     return HttpResponseRedirect(reverse("stats", args=(player_id,)))
 
 
-@login_required(redirect_field_name=None)
+@login_required(login_url="/", redirect_field_name=None)
 def hire(request):
     try:
         hostname = request.POST["hostname"]
@@ -127,8 +127,25 @@ def hire(request):
         pass
     return HttpResponseRedirect(reverse("players"))
 
-@login_required(redirect_field_name=None)
+@login_required(login_url="/", redirect_field_name=None)
 def fire(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
     player.delete()
     return HttpResponseRedirect(reverse("players"))
+
+@login_required(login_url="/", redirect_field_name=None)
+def prize(request, prize_id):
+    try:
+        path = get_prize(str(prize_id))
+        filename = os.path.basename(path)
+        with open(path, "rb") as f:
+            file_data = f.read()
+        if filename.endswith(".txt"):
+            content_type = "text/plain"
+        else:
+            content_type = "application/octet-stream"
+        response = HttpResponse(file_data, content_type=content_type)
+        response["Content-Disposition"] = f"inline; filename={filename}"
+        return response
+    except Exception as err:
+        return HttpResponseNotFound()
