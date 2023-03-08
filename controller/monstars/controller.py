@@ -107,12 +107,11 @@ def do_exec(ip, dest_port, listen_port, cmd, **kwargs):
     return errno, output
 
 
-def do_rollcall(subnets, dest_port, listen_port, expected=MAX_ROLLCALL_QUEUE, **kwargs):
+def do_rollcall(subnets, dest_port, listen_port, expected, **kwargs):
     """broadcast a PING and listen for responses"""
     # we send: "8080;<b64>" --> netfilter adds IP: "172.18.123.1:8080;<b64>"
     encoded = base64.b64encode("PING".encode("ascii"))
     data = f"{listen_port};".encode("ascii") + encoded + b"\x00"
-    hosts = []
     with _tcp_listener(listen_port, queue_size=expected) as tcp:
         for cidr in subnets:
             broadcast = str(ipaddress.IPv4Network(cidr, strict=False)[-1])
@@ -121,25 +120,27 @@ def do_rollcall(subnets, dest_port, listen_port, expected=MAX_ROLLCALL_QUEUE, **
                 udp.sendto(data, (broadcast, dest_port))
         print("waiting for replies...")
         try:
-            count = 0
-            while count < expected:
+            responses = []
+            while len(responses) < expected:
                 sock, hostaddr = tcp.accept()
-                ip, port = hostaddr
+                ip, _ = hostaddr
                 response = sock.recv(64)
                 sock.close()
-                try:
-                    hostname = socket.gethostbyaddr(ip)[0]
-                except socket.herror:
-                    hostname = ip
                 if "PONG" in base64.b64decode(response).decode("ascii"):
-                    print(f"Received PONG from {hostname}")
-                    hosts.append(hostname)
-                    count += 1
+                    print(f"Received PONG from {ip}")
+                    responses.append(ip)
                 else:
-                    print(f"Invalid response from: {hostname}")
+                    print(f"Invalid response from: {ip}")
         except socket.timeout:
             pass
-        return hosts
+    hosts = []
+    for ip in responses:
+        try:
+            hostname = socket.gethostbyaddr(ip)[0]
+        except socket.herror:
+            hostname = ip
+        hosts.append(hostname)
+    return hosts
 
 
 def main():
@@ -195,8 +196,8 @@ def main():
     )
     rollcall_parser.add_argument(
         "-e", "--expected",
-        required=False,
         type=int,
+        default=MAX_ROLLCALL_QUEUE,
         help="number of expected responses",
     )
     rollcall_parser.set_defaults(func=do_rollcall)
