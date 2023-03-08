@@ -107,21 +107,22 @@ def do_exec(ip, dest_port, listen_port, cmd, **kwargs):
     return errno, output
 
 
-def do_rollcall(subnets, dest_port, listen_port, **kwargs):
+def do_rollcall(subnets, dest_port, listen_port, expected=MAX_ROLLCALL_QUEUE, **kwargs):
     """broadcast a PING and listen for responses"""
     # we send: "8080;<b64>" --> netfilter adds IP: "172.18.123.1:8080;<b64>"
     encoded = base64.b64encode("PING".encode("ascii"))
     data = f"{listen_port};".encode("ascii") + encoded + b"\x00"
     hosts = []
-    with _tcp_listener(listen_port, queue_size=MAX_ROLLCALL_QUEUE) as tcp:
+    with _tcp_listener(listen_port, queue_size=expected) as tcp:
         for cidr in subnets:
-            broadcast = str(ipaddress.IPv4Network(cidr)[-1])
+            broadcast = str(ipaddress.IPv4Network(cidr, strict=False)[-1])
             with _udp_sender() as udp:
                 print(f"sending magic packet (multicast) --> {broadcast}:{dest_port}")
                 udp.sendto(data, (broadcast, dest_port))
         print("waiting for replies...")
         try:
-            while True:
+            count = 0
+            while count < expected:
                 sock, hostaddr = tcp.accept()
                 ip, port = hostaddr
                 response = sock.recv(64)
@@ -133,6 +134,7 @@ def do_rollcall(subnets, dest_port, listen_port, **kwargs):
                 if "PONG" in base64.b64decode(response).decode("ascii"):
                     print(f"Received PONG from {hostname}")
                     hosts.append(hostname)
+                    count += 1
                 else:
                     print(f"Invalid response from: {hostname}")
         except socket.timeout:
@@ -190,6 +192,12 @@ def main():
         required=True,
         nargs="+",
         help="CIDR-notated subnet(s) to multicast on, e.g. \"172.20.96.0/20)\"",
+    )
+    rollcall_parser.add_argument(
+        "-e", "--expected",
+        required=False,
+        type=int,
+        help="number of expected responses",
     )
     rollcall_parser.set_defaults(func=do_rollcall)
     # run with it
