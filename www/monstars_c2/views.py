@@ -63,38 +63,6 @@ def stats(request, player_id):
 
 
 @login_required(login_url="/", redirect_field_name=None)
-def rollcall(request):
-    try:
-        mask = request.POST["mask"]
-        dest_port = int(request.POST["slamport"])
-        listen_port = int(request.POST["jamport"])
-    except KeyError:
-        return HttpResponseRedirect(reverse("players"))
-
-    lineup = Player.objects.order_by("hostname")
-    subnets = set()
-    for player in lineup:
-        ip = socket.gethostbyname(player.hostname)
-        subnet = str(ipaddress.ip_network(f"{ip}/{mask}", strict=False))
-        subnets.add(subnet)
-
-    try:
-        active_players = do_rollcall(list(subnets), dest_port, listen_port, expected=len(lineup))
-        for player in lineup:
-            play = player.play_set.create(play_time=timezone.now(), verb="PING", scored=False)
-            player.active = False
-            if player.hostname in active_players:
-                play.scored = True
-                player.active = True
-            play.save()
-            player.save()
-    except Exception:
-        pass
-    return HttpResponseRedirect(reverse("players"))
-
-
-
-@login_required(login_url="/", redirect_field_name=None)
 def makeplay(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
     play_time = timezone.now()
@@ -160,11 +128,13 @@ def hire(request):
         pass
     return HttpResponseRedirect(reverse("players"))
 
+
 @login_required(login_url="/", redirect_field_name=None)
 def fire(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
     player.delete()
     return HttpResponseRedirect(reverse("players"))
+
 
 @login_required(login_url="/", redirect_field_name=None)
 def prize(request, prize_id):

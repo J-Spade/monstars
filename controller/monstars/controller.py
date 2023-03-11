@@ -116,6 +116,7 @@ def do_rollcall(subnets, dest_port, listen_port, expected, **kwargs):
         for cidr in subnets:
             broadcast = str(ipaddress.IPv4Network(cidr, strict=False)[-1])
             with _udp_sender() as udp:
+                udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
                 print(f"sending magic packet (multicast) --> {broadcast}:{dest_port}")
                 udp.sendto(data, (broadcast, dest_port))
         print("waiting for replies...")
