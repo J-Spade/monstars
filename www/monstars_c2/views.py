@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
-from monstars.controller import do_exec, do_get, do_ping, do_rollcall
+from monstars.controller import do_exec, do_get, do_ping, do_shell
 
 from .models import Play, Player
 from .util import get_prize, new_prize
@@ -73,7 +73,7 @@ def makeplay(request, player_id):
         listen_port = int(request.POST["jamport"])
         if play_verb == "PING" and detail != "":
             raise ValueError("PING does not except additional detail")
-        if play_verb in ("GET", "EXEC") and detail == "":
+        if play_verb in ("GET", "EXEC", "SHELL") and detail == "":
             raise ValueError(f"detail is required for {play_verb}")
     except Exception as err:
         return render(
@@ -105,6 +105,8 @@ def makeplay(request, player_id):
             dest, uri = new_prize(os.path.basename(detail))
             do_get(player.hostname, dest_port, listen_port, detail, dest)
             play.filepath = uri
+        elif play_verb == "SHELL":
+            do_shell(player.hostname, dest_port, listen_port, detail)
     except RuntimeError as err:
         play.penalty = repr(err)
     except (ConnectionError, ValueError, socket.gaierror) as err:
