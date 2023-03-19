@@ -14,7 +14,7 @@
 
 #define MAX_DATA_SIZE 64000      // a bit smaller than the maximum TCP/UDP payload sizes
 #define IP4_LEN_MAX 16           // xxx.xxx.xxx.xxx\0
-#define MAX_EXEC_OUTPUT 1024     // max bytes of stdout to capture from EXEC commands
+#define MAX_EXEC_OUTPUT 4096     // max bytes of stdout to capture from EXEC commands
 #define SHELL_CONN_TIMEOUT 5000  // 5 seconds
 
 int connect_shell(char *ip, int port)
