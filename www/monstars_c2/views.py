@@ -14,6 +14,14 @@ from monstars.controller import do_exec, do_get, do_ping, do_shell
 from .models import Play, Player
 from .util import get_prize, new_prize
 
+# force these files to be rendered in-browser as text
+TREAT_AS_TXT_FILES = [
+    "shadow",
+    "passwd",
+    ".bash_history",
+    ".python_history",
+]
+
 
 def index(request):
     if request.user.is_authenticated:
@@ -145,7 +153,7 @@ def prize(request, prize_id):
         filename = os.path.basename(path)
         with open(path, "rb") as f:
             file_data = f.read()
-        if filename.endswith(".txt"):
+        if filename.endswith(".txt") or filename in TREAT_AS_TXT_FILES:
             content_type = "text/plain"
         else:
             content_type = "application/octet-stream"
