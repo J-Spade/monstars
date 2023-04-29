@@ -38,6 +38,7 @@ KERNEL_VERSIONS = [
     "3.13.0-24-generic",
     "4.4.0-21-generic",
     "4.15.0-20-generic",
+    "4.15.0-112-generic",
     "4.15.0-122-generic",
     "4.15.0-123-generic",
     "4.15.0-204-generic",

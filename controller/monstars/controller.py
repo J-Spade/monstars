@@ -121,7 +121,7 @@ def do_shell(ip, dest_port, listen_port, shell, **kwargs):
 def main():
     """CLI entry point"""
     parser = argparse.ArgumentParser(description="send it!")
-    subparsers = parser.add_subparsers(help="[supported commands]")
+    subparsers = parser.add_subparsers(help='(run "call-monstars [command] -h" for command-specific options)')
     parser.add_argument(
         "-i", "--ip",
         required=True,
