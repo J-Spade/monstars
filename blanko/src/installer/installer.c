@@ -211,8 +211,6 @@ int persist_kernel_mod()
     int retval = -1;
     char *ko_basename = NULL;
     char ko_name[64] = {0};
-    FILE *os_release = NULL;
-    char os_buf[128] = {0};
     size_t read = 0;
     int depmod_ret = 0;
 
@@ -229,104 +227,41 @@ int persist_kernel_mod()
         goto exit;
     }
 
-    // determine which distro flavor we're on
-    os_release = fopen("/etc/os-release", "r");
-    if (NULL == os_release)
+    // add config to /lib/modules-load.d
+    char conf_name[128] = {0};
+    time_t timestamp = 0;
+    snprintf(conf_name, sizeof(conf_name), "/lib/modules-load.d/%s.conf", ko_name);
+    timestamp = best_mtime(conf_name);
+    if (0 != timestamp)
     {
-        DEBUG_LOG("Could not open /etc/os-release (errno: %d)\n", errno);
-        goto exit;
-    }
-    read = fread(os_buf, sizeof(char), sizeof(os_buf), os_release);
-    fclose(os_release);
-    if (sizeof(os_buf) != read)
-    {
-        DEBUG_LOG("Could not read /etc/os-release (errno: %d)\n", errno);
-        goto exit;
-    }
-
-    // Ubuntu: add entry to /etc/modules
-    if (NULL != strstr(os_buf, "Ubuntu"))
-    {
-        time_t timestamp = best_mtime("/etc/modules");
-        if (0 != timestamp)
+        FILE *conf = fopen(conf_name, "w");
+        if (NULL != conf)
         {
-            FILE *modules = fopen("/etc/modules", "a");
-            if (NULL != modules)
+            struct utimbuf times = {timestamp, timestamp};
+            if ((strlen(ko_name) + 1) == fprintf(conf, "%s\n", ko_name))
             {
-                struct utimbuf times = {timestamp, timestamp};
-                if ((strlen(ko_name) + 1) == fprintf(modules, "%s\n", ko_name))
-                {
-                    DEBUG_LOG("Added %s to /etc/modules\n", ko_name);
-                }
-                else
-                {
-                    DEBUG_LOG("Could not add /etc/modules entry (errno: %d)\n", errno);
-                }
-                fclose(modules);
-                if (0 == utime("/etc/modules", &times))
-                {
-                    DEBUG_LOG("Set timestamps for /etc/modules\n");
-                    retval = 0;
-                }
-                else
-                {
-                    DEBUG_LOG("Could not set timestamps for /etc/modules (errno: %d)\n", errno);
-                }
+                DEBUG_LOG("Added %s to %s\n", ko_name, conf_name);
             }
             else
             {
-                DEBUG_LOG("Could not open /etc/modules (errno: %d)\n", errno);
+                DEBUG_LOG("Could not add %s entry (errno: %d)\n", conf_name, errno);
+                unlink(conf_name);
+            }
+            fclose(conf);
+            if (0 == utime(conf_name, &times))
+            {
+                DEBUG_LOG("Set timestamps for %s\n", conf_name);
+                retval = 0;
             }
         }
         else
         {
-            DEBUG_LOG("Could not create timestamp for /etc/modules (errno: %d)\n", errno);
+            DEBUG_LOG("Could not create %s (errno: %d)\n", conf_name, errno);
         }
     }
-    // CentOS: add config entry to /etc/modules-load.d
-    else if (NULL != strstr(os_buf, "CentOS"))
-    {
-        char conf_name[128] = {0};
-        time_t timestamp = 0;
-
-        snprintf(conf_name, sizeof(conf_name), "/etc/modules-load.d/%s.conf", ko_name);
-        timestamp = best_mtime(conf_name);
-        if (0 != timestamp)
-        {
-            FILE *conf = fopen(conf_name, "w");
-            if (NULL != conf)
-            {
-                struct utimbuf times = {timestamp, timestamp};
-                if ((strlen(ko_name) + 1) == fprintf(conf, "%s\n", ko_name))
-                {
-                    DEBUG_LOG("Added %s to %s\n", ko_name, conf_name);
-                }
-                else
-                {
-                    DEBUG_LOG("Could not add %s entry (errno: %d)\n", conf_name, errno);
-                    unlink(conf_name);
-                }
-                fclose(conf);
-                if (0 == utime(conf_name, &times))
-                {
-                    DEBUG_LOG("Set timestamps for %s\n", conf_name);
-                    retval = 0;
-                }
-            }
-            else
-            {
-                DEBUG_LOG("Could not create %s (errno: %d)\n", conf_name, errno);
-            }
-        }
-        else
-        {
-            DEBUG_LOG("Could not create timestamp for %s (errno: %d)\n", conf_name, errno);
-        }
-    }
-    // TODO: else if (possibly) OpenSUSE
     else
     {
-        DEBUG_LOG("Could not determine linux distro flavor!\n");
+        DEBUG_LOG("Could not create timestamp for %s (errno: %d)\n", conf_name, errno);
     }
 
     // Invoke depmod to update the kernel module database
