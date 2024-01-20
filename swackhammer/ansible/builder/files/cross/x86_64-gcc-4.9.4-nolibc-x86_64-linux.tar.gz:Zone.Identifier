@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://mirrors.edge.kernel.org/pub/tools/crosstool/files/bin/x86_64/4.9.4/
+HostUrl=https://mirrors.edge.kernel.org/pub/tools/crosstool/files/bin/x86_64/4.9.4/x86_64-gcc-4.9.4-nolibc-x86_64-linux.tar.gz

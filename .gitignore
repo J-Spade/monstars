@@ -5,9 +5,4 @@ build/
 env/
 export/
 nixenv/
-www/monstars_c2/prizes/*/
 *.egg-info/
-*.ko
-*.o
-*.order
-*.pyc

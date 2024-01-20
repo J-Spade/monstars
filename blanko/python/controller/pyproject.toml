@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "blanko-controller"
+version = "0.1.0"
+description = "welcome to the jam"
+
+[project.scripts]
+call-blanko = "blanko.controller.cli:main"

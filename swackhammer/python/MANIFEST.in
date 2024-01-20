@@ -1,0 +1,2 @@
+recursive-include swackhammer/static *
+recursive-include swackhammer/templates *

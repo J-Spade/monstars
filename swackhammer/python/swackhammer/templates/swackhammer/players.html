@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'monstars/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>MONSTARS: Starting Lineup</title>
+  </head>
+  <body>
+    <a href="./../signout">Sign Out</a>
+    <h1>Monstars' Starting Lineup:</h1>
+    <p><img src="{% static 'monstars/images/monstars.png' %}" title="welcome to the jam" /></p>
+
+    <table style="width: 33%; margin-left: auto; margin-right: auto;">
+        <tr style="background: none;">
+            <td style="background: none; padding: 10px;">
+                <form action="{% url 'hire' %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>Hire Player</h2></legend>
+                    {% if error_msg %}
+                    <p style="color: red"><b>{{ error_msg }}</b></p>
+                    {% endif %}
+                    <input type="text" id="hostname" name="hostname" size="40" />
+                    <input type="submit" value="Welcome to the Jam!" />
+                </form>
+            </td>
+        </tr>
+    </table>
+    </br />
+    {% if lineup %}
+        <table>
+            <tr>
+                <th>Player</th>
+                <th>Status</th>
+                <th>Birthday</th>
+                <th>Last Play</th>
+            </tr>
+            {% for player in lineup %}
+                <tr>
+                    <td>
+                        <a href="{% url 'stats' player.id %}">{{ player.hostname }}</a>
+                    </td>
+                    {% if player.active %}
+                        <td>Active</td>
+                    {% else %}
+                        <td>Benched</td>
+                    {% endif %}
+                    <td>{{ player.birthday }}</td>
+                    {% if player.play_set.all %}
+                        {% with player.play_set.last as lastplay %}
+                            <td>{{ lastplay.play_time }}</td>
+                        {% endwith %}
+                    {% else %}
+                        <td>TBD</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h2>We need to steal more talent!</h2>
+    {% endif %}
+
+    <table style="width: 50%; border: none; margin-left: auto; margin-right: auto;">
+    </table>
+
+  </body>
+</html>
