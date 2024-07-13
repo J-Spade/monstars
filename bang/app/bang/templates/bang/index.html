@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bang: Recent Plays</title>
+  </head>
+
+  <body>
+    {% include './include/navigation.html' %}
+
+    <!-- table of credentials -->
+    <h1>Recent Plays</h2>
+    <table style="border: none;">
+        <tr>
+            <td colspan="6" style="background: transparent; border: none; text-align: right;">
+                <a href="{% url 'export' %}">[Export as JSON]</a>
+            </td>
+        </tr>
+        <tr>
+            <th>Domain</th>
+            <th>Username</th>
+            <th>Password</th>
+            <th>Last Hostname</th>
+            <th>Last Login</th>
+            <th>Last Reset</th>
+        </tr>
+        {% for credential in credentials %}
+        <tr>
+            <td>
+                {{ credential.domain }}
+            </td>
+            <td>
+                {{ credential.username }}
+            </td>
+            <td>
+                {{ credential.password }}
+            </td>
+            <td>
+                {{ credential.last_hostname }}
+            </td>
+            <td>
+                {{ credential.last_used }}
+            </td>
+            <td>
+                {{ credential.last_changed }}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+  </body>
+</html>

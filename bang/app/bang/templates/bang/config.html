@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bang: Configure New Player</title>
+  </head>
+
+  <body>
+    {% include './include/navigation.html' %}
+    
+    <!-- configuration form -->
+    <table>
+        <tr>
+            <td>
+                <form action="{% url 'config' %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>Configure BANG</h2></legend>
+
+                    {% if fail_msg %}
+                    <p style="color: red;">{{ fail_msg }}</p>
+                    {% endif %}
+
+                    <table style="border: none; background: none;">
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="provider_name">SSP name</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="provider_name" name="provider_name" size="34" value="{{ provider_name }}" required />
+                            </td>
+                        </tr>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="hostname">HTTPS hostname</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="hostname" name="hostname" size="34" value="{{ hostname }}" required />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="auth_token">API token</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input list="auth_tokens" id="auth_token" name="auth_token" size="34" placeholder="(generate)" />
+                                <datalist id="auth_tokens">
+                                    {% for token in auth_tokens %}
+                                    <option value="{{ token }}">{{ token }}</option>
+                                    {% endfor %}
+                                </datalist>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"><input type="submit" value="Come on and Slam!" /></td>
+                        </tr>
+                    </table>
+                </form>
+            </td>
+        </tr>
+    </table>
+     
+  </body>
+</html>

@@ -1,0 +1,2 @@
+recursive-include bang/static *
+recursive-include bang/templates *

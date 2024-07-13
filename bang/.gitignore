@@ -1,0 +1,11 @@
+.vs
+build
+export
+__pycache__
+*.vcxproj.filters
+*.vcxproj.user
+*.aps
+*.pem
+*.egg-info
+*.exe
+*.dll
