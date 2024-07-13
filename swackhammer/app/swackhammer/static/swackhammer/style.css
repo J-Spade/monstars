@@ -1,0 +1,44 @@
+body {
+	background: url("./images/bg_stars.gif");
+}
+
+h1 {
+	text-align: center;
+	color: red;
+	font-size: +2;
+}
+h2 {
+	text-align: center;
+	color: yellow;
+	font-size: +1;
+}
+
+a:link {
+	color: red;
+}
+a:visited {
+	color: red;
+}
+a:hover {
+	color: blue;
+}
+
+p {
+    color: white;
+    text-align: center;
+}
+
+table, td, th {
+	border: 1px ridge #feff89;
+    border-spacing: 1px;
+    margin: auto;
+    padding: 3px;
+}
+td, th {
+	background-color: black;
+	text-align: center;
+	color: yellow;
+}
+td {
+	color: #feff89;
+}
