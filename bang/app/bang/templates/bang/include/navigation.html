@@ -16,15 +16,21 @@
 <table style="border: none; background: transparent;">
     <tr>
         <td style="border: none; background: transparent;">
-            <a href="{% url 'tokens' %}"><img src="{% static 'swackhammer/images/credits.gif' %}" /></a>
-            <br /> API Tokens
+            <a href="{% url 'tokens' %}">
+                <img src="{% static 'swackhammer/images/credits.gif' %}" />
+                <br /> API Tokens
+            </a>
         </td>
         <td style="border: none; background: transparent;">
-            <a href="/bang/"><img title="bang" src="{% static 'bang/images/nullstar.gif' %}" title="welcome to the jam" /></a>
+            <a href="{% url 'bangindex' %}">
+                <img title="bang" src="{% static 'bang/images/nullstar.gif' %}" title="welcome to the jam" />
+            </a>
         </td>
         <td style="border: none; background: transparent;">
-            <a href="{% url 'config' %}"><img src="{% static 'swackhammer/images/credits.gif' %}" /></a>
-            <br /> Configure
+            <a href="{% url 'config' %}">
+                <img src="{% static 'swackhammer/images/credits.gif' %}" />
+                <br /> Configure
+            </a>
         </td>
     </tr>
 </table>
