@@ -40,14 +40,14 @@ Once all of the files are in place and the kernel module is registered, the inst
 
 The controller is a Python module that can be installed as a wheel or in editable "develop" mode. It requires at least Python 3.7 in its environment.
 
-The `call-monstars` CLI can be used to send commands to an installed backdoor. For example, the PING command can be used to verify that a backdoor has been installed correctly:
+The `blanko` CLI can be used to send commands to an installed backdoor. For example, the PING command can be used to verify that a backdoor has been installed correctly:
 ```
 (env) C:\Users\j_spa\Projects\git\monstars-netfilter>call-monstars -i 172.20.103.108 ping
 sending magic packet --> 172.20.103.108:53
 waiting for reply...
 Received PONG from 172.20.103.108
 ```
-Run `call-monstars -h` to see a list of commands, or `call-monstars <command> -h` for command-specific options.
+Run `blanko -h` to see a list of commands, or `blanko <command> -h` for command-specific options.
 
 In addition to the CLI, the Python module can also be imported and used as an API to script or automate the backdoors.
 

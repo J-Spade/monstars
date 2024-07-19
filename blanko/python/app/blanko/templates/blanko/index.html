@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>MONSTARS: Starting Lineup</title>
+  </head>
+  <body>
+    {% include './include/navigation.html' %}
+
+    <!-- table of players -->
+    <h1>Players</h1>
+    <table>
+        <tr>
+            <th>Player</th>
+            <th>Address</th>
+            <th>Kernel</th>
+            <th>Status</th>
+            <th>Birthday</th>
+            <th>Last Play</th>
+        </tr>
+        {% for player in lineup %}
+            <tr>
+                <td>
+                    <a href="{% url 'stats' player.id %}">{{ player.hostname }}</a>
+                </td>
+                <td>{{ player.address }}</td>
+                <td>{{ player.kernel }}</td>
+                {% if player.active %}
+                    <td>Active</td>
+                {% else %}
+                    <td>Benched</td>
+                {% endif %}
+                <td>{{ player.birthday }}</td>
+                {% if player.play_set.all %}
+                    {% with player.play_set.last as lastplay %}
+                        <td>{{ lastplay.play_time }}</td>
+                    {% endwith %}
+                {% else %}
+                    <td>TBD</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+
+  </body>
+</html>

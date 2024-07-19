@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Blanko: Hire New Player</title>
+  </head>
+
+  <body>
+    {% include './include/navigation.html' %}
+    
+    <!-- hiring form -->
+    <table>
+        <tr>
+            <td>
+                <form action="{% url 'hire' %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>Hire BLANKO</h2></legend>
+
+                    {% if error_msg %}
+                    <p style="color: red"><b>{{ error_msg }}</b></p>
+                    {% endif %}
+
+                    <table style="border: none; background: none;">
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="hostname">Player Name</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="hostname" name="hostname" size="32" value="{{ hostname }}" placeholder="host.domain.net" required />
+                            </td>
+                        </tr>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="address">IP Address</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="address" name="address" size="32" value="{{ address }}" placeholder="127.0.0.1" required />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="kernel">Kernel</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="kernel" name="kernel" size="32" value="{{ kernel }}" placeholder="3.10.0-123.el7.x86_64" required />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"><input type="submit" value="Welcome to the Jam!" /></td>
+                        </tr>
+                    </table>
+                </form>
+            </td>
+        </tr>
+    </table>
+     
+  </body>
+</html>

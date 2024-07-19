@@ -2,11 +2,10 @@
 requires = ["setuptools", "wheel"]
 
 [project]
-name = "blanko-app"
+name = "blanko-swackhammer"
 version = "0.1.0"
 description = "welcome to the jam"
 dependencies = [
     "blanko-controller",
-    "monstars",
-    "pydantic",
+    "swackhammer",
 ]

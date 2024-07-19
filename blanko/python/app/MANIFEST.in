@@ -1,0 +1,2 @@
+recursive-include blanko/app/static *
+recursive-include blanko/app/templates *

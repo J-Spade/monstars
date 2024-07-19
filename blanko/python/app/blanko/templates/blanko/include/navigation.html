@@ -1,0 +1,34 @@
+{% load static %}
+
+<!-- top navigation -->
+<table style="border: none; width: 100%; background: transparent;">
+    <tr>
+        <td style="background: transparent; border: none; text-align: left;">
+            <a href="/"><img height="60" src="{% static 'swackhammer/images/pn-lineup.gif' %}" /></a>
+        </td>
+        <td style="background: transparent; border: none; text-align: right; vertical-align: top;">
+            <a href="{% url 'signout' %}">Sign Out</a>
+        </td>
+    </tr>
+</table>
+
+<!-- blanko navigation -->
+<table style="border: none; background: transparent;">
+    <tr>
+        <td style="border: none; background: transparent;">
+            <a href="{% url 'hire' %}">
+                <img src="{% static 'swackhammer/images/credits.gif' %}" />
+                <br /> Hire
+            </a>
+        </td>
+        <td style="border: none; background: transparent; padding: 10px;">
+            <a href="{% url 'blankoindex' %}">
+                <img title="blanko" src="{% static 'blanko/images/voidstar.gif' %}" title="welcome to the jam" />
+            </a>
+        </td>
+        <td style="border: none; background: transparent;">
+            <!-- placeholder -->
+            <img src="{% static 'swackhammer/images/credits.gif' %}" style="opacity: 0;" />
+        </td>
+    </tr>
+</table>
