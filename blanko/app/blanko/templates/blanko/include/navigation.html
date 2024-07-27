@@ -18,7 +18,7 @@
         <td style="border: none; background: transparent;">
             <a href="{% url 'hire' %}">
                 <img src="{% static 'swackhammer/images/credits.gif' %}" />
-                <br /> Hire
+                <br /> Register
             </a>
         </td>
         <td style="border: none; background: transparent; padding: 10px;">
@@ -27,8 +27,10 @@
             </a>
         </td>
         <td style="border: none; background: transparent;">
-            <!-- placeholder -->
-            <img src="{% static 'swackhammer/images/credits.gif' %}" style="opacity: 0;" />
+            <a href="{% url 'blankoconfig' %}">
+                <img src="{% static 'swackhammer/images/credits.gif' %}" />
+                <br /> Configure
+            </a>
         </td>
     </tr>
 </table>

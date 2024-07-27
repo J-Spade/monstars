@@ -10,5 +10,6 @@ urlpatterns = [
     path("<int:player_id>/makeplay/", views.makeplay, name="makeplay"),
     path("<int:player_id>/fire/", views.fire, name="fire"),
     path("hire/", views.hire, name="hire"),
+    path("config/", views.config, name="blankoconfig"),
     path("prizes/<uuid:prize_id>/", views.prize, name="prize"),
 ] + staticfiles_urlpatterns()

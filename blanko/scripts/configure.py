@@ -22,6 +22,7 @@ STAMP_MAGIC_KO_PATH = b"MORONMOUNTAIN"
 
 DEFAULT_EXE_PATH = "/usr/bin/blanko"
 
+
 def _stamp_binary(binary: bytes, stamp_pattern: bytes, stamp_data: bytes) -> bytes:
     """Stamp over a pattern in the binary data and return the result"""
     idx = binary.index(stamp_pattern)

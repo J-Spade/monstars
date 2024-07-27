@@ -14,6 +14,7 @@ from blanko.controller.commands import cmd_exec, cmd_get, cmd_ping, cmd_shell
 
 from .models import BlankoPlay, BlankoPlayer
 
+from .utils import available_kernels, configure_blanko_installer
 # from .utils import get_prize, new_prize
 
 
@@ -47,6 +48,7 @@ def hire(request):
         "hostname": "",
         "address": "",
         "kernel": "",
+        "kernel_vers": available_kernels(),
     }
     if request.method == "GET":
         return render(request, "blanko/hire.html", template_data)
@@ -69,6 +71,40 @@ def hire(request):
     except:
         template_data["error_msg"] = "Configuration failed!"
         return render(request, "blanko/hire.html", template_data, status=500)
+
+
+@require_http_methods(["GET", "POST"])
+@login_required(login_url="/signin/", redirect_field_name=None)
+def config(request):
+    template_data = {
+        "user_path": "",
+        "kernel": "",
+        "kernel_vers": available_kernels(),
+    }
+    if request.method == "GET":
+        return render(request, "blanko/config.html", template_data)
+    try:
+        user_path = request.POST["user_path"]
+        kernel = request.POST["kernel"]
+    except KeyError:
+        return render(request, "blanko/config.html")
+    template_data.update({k: v for k, v in request.POST.items() if k in template_data})
+        
+    if not all((user_path, kernel)):
+        template_data["fail_msg"] = "Missing configuration data!"
+        return render(request, "blanko/config.html", template_data, status=400)
+
+    try:
+        installer = configure_blanko_installer(
+            kernel_ver=kernel,
+            exe_path=user_path,
+        )
+        response = HttpResponse(installer, content_type="application/octet-stream")
+        response["Content-Disposition"] = f"inline; filename=blanko-installer"
+        return response
+    except Exception as e:
+        template_data["fail_msg"] = str(e)
+        return render(request, "blanko/config.html", template_data, status=500)
 
 
 @require_POST

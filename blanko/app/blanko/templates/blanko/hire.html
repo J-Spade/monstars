@@ -45,7 +45,12 @@
                                 <label for="kernel">Kernel</label>
                             </td>
                             <td style="border: none; text-align: left;">
-                                <input type="text" id="kernel" name="kernel" size="32" value="{{ kernel }}" placeholder="3.10.0-123.el7.x86_64" required />
+                                <input list="kernels" id="kernel" name="kernel" size="32" value="{{ kernel }}" placeholder="3.10.0-123.el7.x86_64" required />
+                                <datalist id="kernels">
+                                    {% for ver in kernel_vers %}
+                                    <option value="{{ ver }}">{{ ver }}</option>
+                                    {% endfor %}
+                                </datalist>
                             </td>
                         </tr>
                         <tr>
