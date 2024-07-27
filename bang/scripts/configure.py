@@ -15,7 +15,11 @@ BANG_AUTH_TOKEN_STAMP = "00000000-0000-0000-0000-000000000000".encode("utf-16-le
 
 def _stamp_value(binary: bytes, stamp_pattern: bytes, stamp_data: bytes) -> bytes:
     idx = binary.index(stamp_pattern)
-    return binary.replace(binary[idx : idx + len(stamp_data) + 1], stamp_data + b"\x00")
+    return binary.replace(
+        binary[idx : idx + len(stamp_data) + 1],
+        stamp_data + b"\x00",
+        1,
+    )
 
 
 def configure_bang_installer(debug: bool, hostname: str, auth_token: str, provider_name: str) -> bytes:

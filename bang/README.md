@@ -1,8 +1,8 @@
-# BANG
+# bang
 
-**BANG** for Windows (based on a proof-of-concept by [Red Team Notes](https://www.ired.team/offensive-security/credential-access-and-credential-dumping/intercepting-logon-credentials-via-custom-security-support-provider-and-authentication-package)) is a Security Support Provider (SSP) that sends intercepted logon credentials from the Local Security Authority (LSA) to an HTTPS endpoint.
+**bang** for Windows (based on a proof-of-concept by [Red Team Notes](https://www.ired.team/offensive-security/credential-access-and-credential-dumping/intercepting-logon-credentials-via-custom-security-support-provider-and-authentication-package)) is a Security Support Provider (SSP) that sends intercepted logon credentials from the Local Security Authority (LSA) to an HTTPS endpoint.
 
-**BANG** for Linux is a Pluggable Authentication Modules (PAM) module that sends intercepted logon credentials from the PAM authentication stack to an HTTPS endpoint.
+**bang** for Linux is a Pluggable Authentication Modules (PAM) module that sends intercepted logon credentials from the PAM authentication stack to an HTTPS endpoint.
 
 **TODO:**
 * automated uninstallers (without reboot, if possible)

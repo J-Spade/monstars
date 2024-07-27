@@ -1,6 +1,4 @@
 .vs
-build
-export
 __pycache__
 *.vcxproj.filters
 *.vcxproj.user
