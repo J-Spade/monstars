@@ -41,7 +41,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)..\..\..\_export\bang\lsass\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)..\..\..\_export\bang\lsass\$(Configuration.toLower())\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\_build\bang\lsass\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

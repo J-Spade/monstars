@@ -25,19 +25,29 @@
                     <table style="border: none; background: none;">
                         <tr>
                             <td style="border: none; text-align: right;">
-                                <label for="provider_name">SSP name</label>
+                                <label for="module_name">Target</label>
                             </td>
                             <td style="border: none; text-align: left;">
-                                <input type="text" id="provider_name" name="provider_name" size="34" value="{{ provider_name }}" required />
+                                <select id="target" name="target">
+                                    <option value="lsass" {% if target == 'lsass' %} selected {% endif %}>lsass</option>
+                                    <option value="pam" disabled {% if target == 'pam' %} selected {% endif %}>pam</option>
+                                </select>
                             </td>
-                        </tr>
                         </tr>
                         <tr>
                             <td style="border: none; text-align: right;">
-                                <label for="hostname">HTTPS hostname</label>
+                                <label for="module_name">Module Name</label>
                             </td>
                             <td style="border: none; text-align: left;">
-                                <input type="text" id="hostname" name="hostname" size="34" value="{{ hostname }}" required />
+                                <input type="text" id="module_name" name="module_name" size="34" value="{{ module_name }}" placeholder="bang" required />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="hostname">HTTPS Hostname</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="hostname" name="hostname" size="34" value="{{ hostname }}" placeholder="127.0.0.1" required />
                             </td>
                         </tr>
                         <tr>

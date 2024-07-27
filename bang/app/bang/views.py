@@ -50,21 +50,23 @@ def revoke(request, token_id):
 def config(request):
     tokens = [str(token) for token in AuthenticationToken.objects.order_by("token").filter(revoked=False)]
     template_data = {
-        "provider_name": "bang",
-        "hostname": "172.17.224.1",  # TODO: determine own hostname?
+        "target": "",
+        "module_name": "",
+        "hostname": "",  # TODO: determine own hostname?
         "auth_tokens": tokens,
     }
     if request.method == "GET":
         return render(request, "bang/config.html", template_data)
     try:
-        provider_name = request.POST["provider_name"]
+        target = request.POST["target"]
+        module_name = request.POST["module_name"]
         hostname = request.POST["hostname"]
         auth_token = request.POST["auth_token"]
     except KeyError:
         return render(request, "bang/config.html")
     template_data.update({k: v for k, v in request.POST.items() if k in template_data})
         
-    if not all((provider_name, hostname)):
+    if not all((module_name, hostname)):
         template_data["fail_msg"] = "Missing configuration data!"
         return render(request, "bang/config.html", template_data, status=400)
 
@@ -74,7 +76,8 @@ def config(request):
         installer = configure_bang_installer(
             hostname=hostname,
             auth_token=auth_token,
-            provider_name=provider_name,
+            module_name=module_name,
+            target=target,
         )
         _, _ = AuthenticationToken.objects.get_or_create(token=auth_token)
         response = HttpResponse(installer, content_type="application/octet-stream")

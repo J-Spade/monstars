@@ -36,12 +36,11 @@
                                 <label for="kernel">Kernel Version</label>
                             </td>
                             <td style="border: none; text-align: left;">
-                                <input list="kernels" id="kernel" name="kernel" size="32" value="{{ kernel }}" placeholder="3.10.0-123.el7.x86_64" required />
-                                <datalist id="kernels">
+                                <select id="kernels" name="kernels">
                                     {% for ver in kernel_vers %}
                                     <option value="{{ ver }}">{{ ver }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
                             </td>
                         </tr>
                         <tr>
