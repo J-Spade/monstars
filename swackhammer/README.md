@@ -2,7 +2,7 @@
 
 **swackhammer** is a Django app that provides static resources and templates for Monstars' webapps to use. The look and feel of the site is based on [the classic 1996 Space Jam website](https://www.spacejam.com/1996/jam.htm).
 
-The `swackhammer` webapp includes URLs for user signin and signout, as well as a main index from which installed monstars' webapps can be reached.
+The `swackhammer` webapp includes URLs for user signin and signout, as well as a main index from which installed Monstars' webapps can be reached. Additionally, `swackhammer` provides helper functions for saving and serving any "loot" files that may be acquired by any deployed Monstars players.
 
 
 ## Installation
