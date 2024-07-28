@@ -32,7 +32,7 @@ The `bang-swackhammer` Python package is a Django app used for handling `POST` r
 
 Usage of the web interface requires a user account on the Django webserver.
 
-Before the webapp can be used to configure an installer, compiled installer EXE must be copied/moved from the `_export/` directory into `app/bang/installers/`.
+Before the webapp can be used to configure an installer, compiled installer binaries must be copied/moved from the `_export/` directory into `app/bang/installers/`.
 
 (TODO: helper script for packaging app wheels)
 

@@ -11,6 +11,7 @@ from django.core import serializers
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 from .models import AuthenticationToken, LogonCredential
@@ -110,6 +111,7 @@ def export(request):
 
 
 @require_POST
+@csrf_exempt
 def log(request):
     time_now = datetime.datetime.now()
 
