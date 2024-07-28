@@ -2,9 +2,9 @@ from importlib import resources
 import os
 from typing import List
 
-from .static.blanko import binaries
+from . import installers
 
-INSTALLER_DIR = resources.files(binaries)
+INSTALLER_DIR = resources.files(installers)
 INSTALLER_NAME = "blanko-install"
 
 STAMP_MAGIC_USER_PATH = b"BASKETBALLJONES"

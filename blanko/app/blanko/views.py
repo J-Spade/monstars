@@ -100,7 +100,7 @@ def config(request):
             exe_path=user_path,
         )
         response = HttpResponse(installer, content_type="application/octet-stream")
-        response["Content-Disposition"] = f"inline; filename=blanko-installer"
+        response["Content-Disposition"] = "inline; filename=blanko-installer"
         return response
     except Exception as e:
         template_data["fail_msg"] = str(e)

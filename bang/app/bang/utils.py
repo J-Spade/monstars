@@ -1,10 +1,12 @@
 from importlib import resources
 import uuid
 
-BANG_BINARIES_DIR = resources.files("bang") / "static" / "bang" / "binaries"
+from . import installers
 
-BANG_INSTALLER_LSASS = BANG_BINARIES_DIR / "lsass" / "installer.exe"
-BANG_INSTALLER_PAM = BANG_BINARIES_DIR / "pam" / "installer"
+INSTALLER_DIR = resources.files(installers)
+
+BANG_INSTALLER_LSASS = INSTALLER_DIR / "lsass" / "installer.exe"
+BANG_INSTALLER_PAM = INSTALLER_DIR / "pam" / "installer"
 
 # stamped configuration values - found and replaced in the installer binary
 BANG_MODULE_NAME_STAMP = "BASKETBALLJONES".encode("utf-16-le")

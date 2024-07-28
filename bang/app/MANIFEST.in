@@ -1,2 +1,3 @@
+recursive-include bang/installers *
 recursive-include bang/static *
 recursive-include bang/templates *
