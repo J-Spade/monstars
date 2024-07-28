@@ -8,9 +8,16 @@ The backdoor currently supports the following commands:
  - `EXEC` (run a shell command)
  - `SHELL` (connect a reverse TCP shell to a listening host)
 
-Commands are sent using UDP messages with a source port of `31337`, and responses are sent over TCP connections back to the sender. Commands and response data are base64-encoded, but not encrypted.
+During initialization, the kernel module installs a netfilter hook to listen for commands sent by the controller. "Magic" UDP packets with a source port of `31337` have their data copied to a static buffer and are then dropped. All other packets are sent along untouched by the filter.
 
-----------
+To process commands, the kernel module registers the the file `/proc/task` and spins up a worker thread named `kworker/l:1`. When the static command buffer contains data, the worker thread spawns a new process to handle the command in user-mode. The user-mode executable opens and reads the `/proc/task` file, retrieving the command data from the kernel module.
+
+Once the task is complete, the user-mode executable opens a TCP connection back to the controller, according to the source IP from the "magic" packet and the port number sent with the command. The result of the command (e.g., file data, a PING response) is sent back over the TCP connection.
+
+Neither the `kworker/l:1` kernel thread nor the `/proc/task` file are hidden from usermode by any sort of rootkit trickery; they're visible in `top` and `ls /proc` output, respectively.
+
+Commands and response data are base64-encoded, but not encrypted.
+
 
 ## Installer
 
@@ -21,20 +28,17 @@ Once your build environment is set up, simply use the Python script `build_monst
  - target kernel version
  - debug configuration (logging and symbols)
 
-The configured installer will be placed in the `./export/` directory, and will be named `go-monstars_<kernel version>`.
+The configured installer will be placed under the `_export/` directory of the repo, and will be named `blanko-install`.
 
 The installer binary must be run with `root` permissions to successfully install the backdoor. It creates and/or modifies the following files:
- - The user-mode executable (path and name configurable), e.g., `/bin/monstars`
- - The kernel module, e.g., `/lib/modules/4.15.0-123-generic/kernel/drivers/net/monstars_nf.ko`
- - A kernel module load config entry in one of these places:
-    - `/etc/modules` (Ubuntu)
-    - `/etc/modules-load.d/monstars_nf.conf` (CentOS)
+ - The user-mode executable (path and name configurable), e.g., `/usr/bin/blanko`
+ - The kernel module, e.g., `/lib/modules/4.15.0-123-generic/kernel/drivers/net/blanko.ko`
+ - A kernel module load config entry, e.g., `/etc/modules-load.d/blanko.conf`
 
 All dropped and modified files have their `mtime` timestamp adjusted to match nearby files with similar names. After dropping the files to disk, the installer invokes `depmod` to register the kernel module to be loaded on boot.
 
 Once all of the files are in place and the kernel module is registered, the installer finally inserts the kernel module itself, enabling the backdoor. Once inserted, the module is visible in `lsmod` output.
 
-----------
 
 ## Controller
 
@@ -42,28 +46,29 @@ The controller is a Python module that can be installed as a wheel or in editabl
 
 The `blanko` CLI can be used to send commands to an installed backdoor. For example, the PING command can be used to verify that a backdoor has been installed correctly:
 ```
-(env) C:\Users\j_spa\Projects\git\monstars-netfilter>call-monstars -i 172.20.103.108 ping
+(env) C:\Users\j_spa\redteam\monstars>blanko -i 172.20.103.108 ping
 sending magic packet --> 172.20.103.108:53
 waiting for reply...
 Received PONG from 172.20.103.108
 ```
-Run `blanko -h` to see a list of commands, or `blanko <command> -h` for command-specific options.
+Run `blanko -h` to see a list of commands and general options, or `blanko <command> -h` for command-specific options.
 
 In addition to the CLI, the Python module can also be imported and used as an API to script or automate the backdoors.
 
-----------
 
-## Behavior
+## Django App
 
-During initialization, the kernel module installs a netfilter hook to listen for commands sent by the controller. "Magic" UDP packets with a source port of `31337` have their data copied to a static buffer and are then dropped. All other packets are sent along untouched by the filter.
+The `blanko-swackhammer` Python package is a Django app used for managing and interacting with deployed `blanko` backdoors. The web interface can be used to:
+ - add or remove registered `blanko` instances to the database
+ - send commands to registered `blanko` instances
+ - configure a `blanko` installer binary for deployment to a target
+ 
+Usage of the web interface requires a user account on the Django webserver.
 
-To process commands, the kernel module registers the the file `/proc/task` and spins up a worker thread named `kworker/l:1`. If the static command buffer contains data, the worker thread spawns a new process to handle the command in user-mode. The user-mode executable opens and reads the `/proc/task` file, retrieving the command data from the kernel module.
+Before the webapp can be used to configure an installer, compiled installer EXE must be copied/moved from the `_export/` directory into `app/blanko/installers/`.
 
-Once the task is complete, the user-mode executable opens a TCP connection back to the controller, using the source IP from the "magic" packet, and the port number sent with the command. The result of the command (e.g., file data, a PING response) is sent back over the TCP connection.
+(TODO: helper script for packaging app wheels)
 
-Neither the `kworker/l:1` kernel thread nor the `/proc/task` file are hidden from by any sort of rootkit trickery; they're visible in `top` and `ls /proc` output, respectively.
-
-----------
 
 ## License
 

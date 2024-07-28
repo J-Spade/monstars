@@ -1,6 +1,7 @@
 """Everybody get up, it's time to slam now!"""
 import base64
 import ipaddress
+import logging
 import os
 import pathlib
 import socket
@@ -8,6 +9,8 @@ import time
 from typing import Tuple
 
 from .util import tcp_listener, udp_sender
+
+LOGGER = logging.getLogger(__name__)
 
 MAGIC_SRC_PORT = 31337
 
@@ -25,9 +28,9 @@ def _send_cmd(
 
     with tcp_listener(listen_port) as tcp:
         with udp_sender(MAGIC_SRC_PORT) as udp:
-            print(f"sending magic packet --> {dest_ip}:{dest_port}")
+            LOGGER.info("sending magic packet --> %s:%d", str(dest_ip), dest_port)
             udp.sendto(data, (str(dest_ip), dest_port))
-        print("waiting for reply...")
+        LOGGER.info("waiting for reply...")
         try:
             sock, addr = tcp.accept()
         except socket.timeout as err:
@@ -62,7 +65,6 @@ def cmd_get(
     path: pathlib.PurePosixPath,
 ) -> bytes:
     """retrieve a file"""
-    print(path)
     return _send_cmd(f"GET {path!s}", dest_ip, dest_port, listen_port)
 
 

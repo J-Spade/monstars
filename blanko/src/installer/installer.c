@@ -11,11 +11,16 @@
 #include <unistd.h>
 #include <utime.h>
 
-#include "macros.h"
-
 // precompiled headers
 #include <ko_precompiled.h>    // c_KernelMod
 #include <user_precompiled.h>  // c_UserExe
+
+// debug logging
+#ifdef DEBUG
+    #define DEBUG_LOG(...) printf(__VA_ARGS__)
+#else
+    #define DEBUG_LOG(...)
+#endif
 
 // *** magic values to stamp over ***
 static const char c_user_exe_path[255] = "BASKETBALLJONES";

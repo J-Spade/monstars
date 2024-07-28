@@ -1,9 +1,4 @@
-.vs
-__pycache__
 *.vcxproj.filters
 *.vcxproj.user
 *.aps
 *.pem
-*.egg-info
-*.exe
-*.dll

