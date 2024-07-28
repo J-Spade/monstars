@@ -59,7 +59,7 @@
                         <td>No</td>
                     {% endif %}
                     {% if play.filepath %}
-                        <td><a href="../../{{ play.filepath }}/">{{ play.detail }}</a></td>
+                        <td><a href="{{ play.filepath }}">{{ play.detail }}</a></td>
                     {% else %}
                         <td>{{ play.detail }}</td>
                     {% endif %}
@@ -70,6 +70,7 @@
 
     <br /><br />
     <form action="{% url 'fire' player.id %}" method="post">
+        {% csrf_token %}
         <p>
             <button type="submit" onclick="return confirm('Send this player back to Moron Mountain?');">
                 Fire {{ player.hostname }}

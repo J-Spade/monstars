@@ -1,4 +1,3 @@
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path, re_path
 
 from . import views
@@ -11,5 +10,4 @@ urlpatterns = [
     path("<int:player_id>/fire/", views.fire, name="fire"),
     path("hire/", views.hire, name="hire"),
     path("config/", views.config, name="blankoconfig"),
-    path("prizes/<uuid:prize_id>/", views.prize, name="prize"),
-] + staticfiles_urlpatterns()
+]

@@ -1,4 +1,8 @@
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
+from swackhammer.utils import delete_loot
 
 
 class BlankoPlayer(models.Model):
@@ -23,3 +27,8 @@ class BlankoPlay(models.Model):
 
     def __str__(self):
         return f"{self.verb} :: {str(self.id)}"
+
+@receiver(post_delete, sender=BlankoPlay)
+def signal_play_delete(sender, instance, using, **kwargs):
+    if instance.filepath:
+        delete_loot(instance.filepath)
