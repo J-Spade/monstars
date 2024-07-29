@@ -152,7 +152,7 @@ def makeplay(request, player_id):
             if retcode != 0:
                 play.penalty = str(retcode)
             if len(output.strip()):
-                uri = save_loot("stdout.txt", output, "blanko/")
+                uri = save_loot("stdout.txt", output.encode("utf-8"), "blanko/")
                 play.filepath = uri
         elif play_verb == "GET":
             filedata = cmd_get(player.address, dest_port, listen_port, detail)

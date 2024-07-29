@@ -23,6 +23,8 @@ Commands and response data are base64-encoded, but not encrypted.
 
 To build an installer, you will need kernel headers for the version of linux you want to target. Obtaining and installing the correct build tools for your kernel target is left as an exercise for the reader.
 
+(TODO: dev environment setup instructions/scripts)
+
 Once your build environment is set up, simply use the Python script `build_monstars.py` to build an installer specific to your target environment. The following attributes are configurable at build time:
  - kernel object name
  - target kernel version
