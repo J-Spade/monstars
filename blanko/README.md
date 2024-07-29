@@ -18,19 +18,19 @@ Neither the `kworker/l:1` kernel thread nor the `/proc/task` file are hidden fro
 
 Commands and response data are base64-encoded, but not encrypted.
 
+### Build
 
-## Installer
-
-To build an installer, you will need kernel headers for the version of linux you want to target. Obtaining and installing the correct build tools for your kernel target is left as an exercise for the reader.
+To build a `blanko` installer, you will need kernel headers for the version of linux you want to target. Obtaining and installing the correct build tools for your kernel target is left as an exercise for the reader.
 
 (TODO: dev environment setup instructions/scripts)
 
-Once your build environment is set up, simply use the Python script `build_monstars.py` to build an installer specific to your target environment. The following attributes are configurable at build time:
- - kernel object name
- - target kernel version
- - debug configuration (logging and symbols)
+Once your build environment is set up, use the Python script `scripts/build.py` to build an installer for your desired kernel version. An unconfigured installer binary will be placed under the `_export/` directory of the repo.
 
-The configured installer will be placed under the `_export/` directory of the repo, and will be named `blanko-install`.
+### Configuration
+
+Before it is run on target, the compiled `blanko` installer must be configured with the on-target filepath where the usermode executable will be placed. Configuration can be performed either using the `scripts/configure.py` helper script, or from the Django webapp ([see below](#django-app)).
+
+### Installation
 
 The installer binary must be run with `root` permissions to successfully install the backdoor. It creates and/or modifies the following files:
  - The user-mode executable (path and name configurable), e.g., `/usr/bin/blanko`
@@ -48,7 +48,7 @@ The controller is a Python module that can be installed as a wheel or in editabl
 
 The `blanko` CLI can be used to send commands to an installed backdoor. For example, the PING command can be used to verify that a backdoor has been installed correctly:
 ```
-(env) C:\Users\j_spa\redteam\monstars>blanko -i 172.20.103.108 ping
+(env) ~/git/monstars$ blanko -i 172.20.103.108 ping
 sending magic packet --> 172.20.103.108:53
 waiting for reply...
 Received PONG from 172.20.103.108
