@@ -5,9 +5,8 @@
 **bang** for Linux is a Pluggable Authentication Modules (PAM) module that sends intercepted logon credentials from the PAM authentication stack to an HTTPS endpoint.
 
 **TODO:**
-* app wheel builder script
-* automated uninstallers (without reboot, if possible)
 * implement PAM module
+* automated uninstallers (without reboot, if possible)
 
 
 ## Building
@@ -34,15 +33,37 @@ Usage of the web interface requires a user account on the Django webserver.
 
 Before the webapp can be used to configure an installer, compiled installer binaries must be copied/moved from the `_export/` directory into `app/bang/installers/`.
 
-(TODO: helper script for packaging app wheels)
+### Packaging
+
+For local development, the `bang-swackhammer` package should be installed in editable mode within the Django webserver environment:
+1. Build the un-configured installer binaries (see [Building](#building))
+1. Use the `app_symlinks.py` helper script to generate installer symlinks within the local sourcetree (see [Helper Scripts](#app_symlinkspy))
+1. Use `pip` to install the webapp package:
+    ```bash
+    (env) $ python3 -m pip install -e ./bang/app/
+    ```
+
+For deployment, the `bang-swackhammer` package should be built as a Python wheel for easy installation in the webserver Django environment:
+1. Build the un-configured installer binaries (see [Building](#building))
+1. Use the `app_symlinks.py` helper script to generate installer symlinks within the local sourcetree (see [Helper Scripts](#app_symlinkspy))
+1. Use the `build` Python package to build the wheel:
+    ```bash
+    (env) $ python3 -m pip install build
+    (env) $ python3 -m build ./bang/app --wheel --outdir .
+    ```
 
 
 ## Helper Scripts
 
 A few helper scripts are provided at `bang/scripts/`, for convenience when testing outside of a Django environment.
 
+### app_symlinks.py
+`app_symlinks.py` is a utility for creating symlinks to compiled installer binaries within the Django app package. It assumes compiled binaries are present in the `_export/` directory (see [Building](#building)) but will create symlinks even if no binaries exist.
+
+Once symlinks have been created, the app sourcetree is usable as an editable python package. Symlinks are also followed when packaging the webapp for deployment (see [Django App: Packaging](#packaging)).
+
 ### configure.py
-`configure.py` is a command-line interface for configuring an installer binary. It assumes compiled binaries are present in the `_export/` directory (see [Building](#building)).
+`configure.py` is a command-line interface for configuring an installer binary. It requires compiled binaries to be present in the `_export/` directory (see [Building](#building)).
 
 ### server.py
 `server.py` is a simple HTTPS server capable of listening for credentials sent by the provider. The script requires a `bangsrv.pem` file in the same directory, containing a TLS server certificate and private key. Credentials are printed to the console, and not otherwise saved anywhere.
