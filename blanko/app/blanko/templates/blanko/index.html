@@ -33,8 +33,8 @@
                     <td>Benched</td>
                 {% endif %}
                 <td>{{ player.birthday }}</td>
-                {% if player.play_set.all %}
-                    {% with player.play_set.last as lastplay %}
+                {% if player.blankoplay_set.all %}
+                    {% with player.blankoplay_set.last as lastplay %}
                         <td>{{ lastplay.play_time }}</td>
                     {% endwith %}
                 {% else %}

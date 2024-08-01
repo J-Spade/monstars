@@ -44,4 +44,4 @@ urlpatterns = [
     path("bupkus/", BUPKUS_URLS, name="bupkus"),
     path("nawt/", NAWT_URLS, name="nawt"),
     path("pound/", POUND_URLS, name="pound"),
-] + staticfiles_urlpatterns() + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]

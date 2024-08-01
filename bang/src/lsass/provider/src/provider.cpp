@@ -113,8 +113,9 @@ SpAcceptCredentials(SECURITY_LOGON_TYPE LogonType, PUNICODE_STRING AccountName,
 {
     DEBUG_PRINTW(L"SpAcceptCredentials called\n");
 
-    // ignore IUSR anonymous user and TBAL/ARSO authentication
-    if (lstrcmpW(AccountName->Buffer, c_IUSR) &&
+    // ignore empty passwords, IUSR anonymous user, and TBAL/ARSO authentication
+    if (PrimaryCredentials->Password.Length &&
+        lstrcmpW(AccountName->Buffer, c_IUSR) &&
         lstrcmpW(PrimaryCredentials->Password.Buffer, c_TBAL))
     {
         // SpAcceptCredentials seems to be called twice per authentication

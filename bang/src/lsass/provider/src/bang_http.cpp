@@ -6,7 +6,7 @@
 
 // enable TLS/HTTPS
 #ifndef BANG_TLS_ENABLED
-    #define BANG_TLS_ENABLED 0
+    #define BANG_TLS_ENABLED 1
 #endif
 #if !BANG_TLS_ENABLED
     #pragma message("*** WARNING: TLS/HTTPS is disabled for this build ***")
