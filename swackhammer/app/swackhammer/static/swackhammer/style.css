@@ -28,13 +28,22 @@ p {
     text-align: center;
 }
 
+hr {
+    height: 5px;
+    border-width: 0px;
+    background-color: lightgray;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
 table, td, th {
-	border: 1px ridge #feff89;
+	border: none;
     border-spacing: 1px;
     margin: auto;
     padding: 3px;
 }
 td, th {
+	border: 1px ridge #feff89;
 	background-color: black;
 	text-align: center;
 	color: yellow;
