@@ -35,21 +35,13 @@ Before the webapp can be used to configure an installer, compiled installer bina
 
 ### Packaging
 
-For local development, the `bang-swackhammer` package should be installed in editable mode within the Django webserver environment:
-1. Build the un-configured installer binaries (see [Building](#building))
-1. Use the `app_symlinks.py` helper script to generate installer symlinks within the local sourcetree (see [Helper Scripts](#app_symlinkspy))
-1. Use `pip` to install the webapp package:
-    ```bash
-    (env) $ python3 -m pip install -e ./bang/app/
-    ```
-
 For deployment, the `bang-swackhammer` package should be built as a Python wheel for easy installation in the webserver Django environment:
 1. Build the un-configured installer binaries (see [Building](#building))
 1. Use the `app_symlinks.py` helper script to generate installer symlinks within the local sourcetree (see [Helper Scripts](#app_symlinkspy))
 1. Use the `build` Python package to build the wheel:
     ```bash
-    (env) $ python3 -m pip install build
-    (env) $ python3 -m build ./bang/app --wheel --outdir .
+    $ python3 -m pip install build
+    $ python3 -m build ./bang/app --wheel --outdir ./_export
     ```
 
 

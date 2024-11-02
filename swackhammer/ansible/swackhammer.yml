@@ -1,0 +1,141 @@
+---
+- name: Install Swackhammer Server
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Install APT Packages
+      ansible.builtin.apt:
+        pkg:
+        - python3-pip
+        - python3-venv
+        - nginx
+        - unzip
+
+    - name: Create Swackhammer Directory
+      ansible.builtin.file:
+        path: /var/www/swackhammer
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Create Swackhammer Wheels Directory
+      ansible.builtin.file:
+        path: /var/www/swackhammer/wheels
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy Wheels
+      ansible.builtin.unarchive:
+        src: swackhammer_wheels.zip
+        dest: /var/www/swackhammer/wheels/
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Create Virtual Environment
+      ansible.builtin.pip:
+        name: "{{ query('fileglob', '/var/www/swackhammer/wheels/*.whl') | list }}"
+        virtualenv: /var/www/swackhammer/env
+        virtualenv_command: python3 -m venv /var/www/swackhammer/env
+
+    - name: Generate Django Secret Key
+      ansible.builtin.command:
+        cmd: /var/www/swackhammer/env/bin/swackhammer-keygen
+        creates: /var/www/swackhammer/secret.key
+
+    - name: Create Django Database
+      ansible.builtin.command:
+        cmd: /var/www/swackhammer/env/bin/swackhammer migrate
+        creates: /var/www/swackhammer/db.sqlite3
+
+    - name: Collect Django Static Files
+      ansible.builtin.command:
+        cmd: /var/www/swackhammer/env/bin/swackhammer collectstatic
+        creates: /var/www/swackhammer/static
+
+    - name: Create Media Root
+      ansible.builtin.file:
+        path: /var/www/swackhammer/loot
+        state: directory
+        owner: www-data
+        group: www-data
+
+    - name: Fixup Directory Permissions
+      ansible.builtin.file:
+        path: /var/www/swackhammer
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 'u=rwX,g=rX,o=rX'
+        recurse: true
+
+    - name: Create Django Superuser
+      ansible.builtin.command:
+        argv:
+          - /var/www/swackhammer/env/bin/swackhammer
+          - createsuperuser
+          - --username
+          - swackhammer
+          - --email
+          - swackhammer@monstars.net
+          - --noinput
+      environment:
+        DJANGO_SUPERUSER_PASSWORD: "{{ django_password }}"
+
+    - name: Copy Nginx Proxy Configuration
+      ansible.builtin.copy:
+        src: proxy.conf
+        dest: /etc/nginx/conf.d/proxy.conf
+
+    - name: Create Nginx Certificates Directory
+      ansible.builtin.file:
+        path: /etc/nginx/certs
+        state: directory
+
+    - name: Generate Nginx Certificate
+      ansible.builtin.command:
+        argv:
+          - openssl
+          - req
+          - -x509
+          - -newkey
+          - rsa:4096
+          - -keyout
+          - /etc/nginx/certs/swackhammer.key
+          - -out
+          - /etc/nginx/certs/swackhammer.crt
+          - -sha256
+          - -days
+          - 3650
+          - -nodes
+          - -subj
+          - "/O=monstars/CN=swackhammer/emailAddress=swackhammer@monstars.net"
+        creates: /etc/nginx/certs/swackhammer.key"
+
+    - name: Copy WSGI App Configuration
+      ansible.builtin.copy:
+        src: uwsgi.ini
+        dest: /var/www/swackhammer/uwsgi.ini
+
+    - name: Copy WSGI Service Configuration
+      ansible.builtin.copy:
+        src: uwsgi.service
+        dest: /etc/systemd/system/uwsgi.service
+
+    - name: Restart WSGI Service
+      ansible.builtin.systemd_service:
+        name: uwsgi
+        daemon_reload: true
+        enabled: true
+        state: restarted
+
+    - name: Restart Nginx Service
+      ansible.builtin.systemd_service:
+        name: nginx
+        enabled: true
+        state: restarted

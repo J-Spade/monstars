@@ -67,25 +67,16 @@ The `blanko-swackhammer` Python package is a Django app used for managing and in
  
 Usage of the web interface requires a user account on the Django webserver.
 
-Before the webapp can be used to configure an installer, compiled installer binaries must be copied/moved from the `_export/` directory into `app/blanko/installers/`.
-
 ### Packaging
 
-For local development, the `blanko-swackhammer` package should be installed in editable mode within the Django webserver environment:
-1. Build the un-configured installer binaries (see [Build](#build))
-1. Use the `app_symlinks.py` helper script to generate installer symlinks within the local sourcetree (see [Helper Scripts](#app_symlinkspy))
-1. Use `pip` to install the webapp package:
-    ```bash
-    (env) $ python3 -m pip install -e ./blanko/app/
-    ```
-
-For deployment, the `blanko-swackhammer` package should be built as a Python wheel for easy installation in the webserver Django environment:
+For deployment, both the `blanko-swackhammer` and `blanko-controller` packages should be built as a Python wheel for easy installation in the webserver Django environment:
 1. Build the un-configured installer binaries (see [Build](#build))
 1. Use the `app_symlinks.py` helper script to generate installer symlinks within the local sourcetree (see [Helper Scripts](#app_symlinkspy))
 1. Use the `build` Python package to build the wheel:
     ```bash
-    (env) $ python3 -m pip install build
-    (env) $ python3 -m build ./blanko/app --wheel --outdir .
+    $ python3 -m pip install build
+    $ python3 -m build ./blanko/app --wheel --outdir ./_export
+    $ python3 -m build ./blanko/controller --wheel --outdir ./_export
     ```
 
 
