@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Blanko: Configure New Player</title>
+  </head>
+
+  <body>
+    {% include './include/navigation.html' %}
+    
+    <!-- configuration form -->
+    <table>
+        <tr>
+            <td>
+                <form action="{% url 'blankoconfig' %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>Configure BLANKO</h2></legend>
+
+                    {% if fail_msg %}
+                    <p style="color: red;">{{ fail_msg }}</p>
+                    {% endif %}
+
+                    <table style="border: none; background: none;">
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="user_path">Usermode Executable</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="user_path" name="user_path" size="34" value="{{ user_path }}" placeholder="/usr/bin/blanko" required />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="kernel">Kernel Version</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <select id="kernel" name="kernel">
+                                    {% for ver in kernel_vers %}
+                                    <option value="{{ ver }}">{{ ver }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"><input type="submit" value="Come on and Slam!" /></td>
+                        </tr>
+                    </table>
+                </form>
+            </td>
+        </tr>
+    </table>
+     
+  </body>
+</html>

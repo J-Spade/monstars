@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to the Jam!</title>
+  </head>
+  <body>
+    <table style="width: 500px; height: 500px; border: none; position: fixed; margin-left: -250px; margin-top: -250px; top: 50%; left: 50%;">
+        <tr style="background: none; border: none;">
+            <td style="background: none; border: none; color: red;">
+                <p><img src="{% static 'swackhammer/images/p-jamlogo.gif' %}" title="Come on and Slam!"/></p>
+                <form action="{% url 'signin' %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>Sign In</h2></legend>
+                    {% if fail_msg %}
+                        <p style="color: red;">{{ fail_msg }}</p>
+                    {% endif %}
+                    <input type="text" id="username" name="username" size="25" placeholder="username" required />
+                    <br />
+                    <input type="password" id="password" name="password" size="25" placeholder="password" required />
+                    <br /><br />
+                    <input type="submit" value="Welcome to the Jam!" />
+                </form>
+            </td>
+        </tr>
+    </table>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+[Unit]
+Description=uWSGI Swackhammer service
+
+[Service]
+User=www-data
+Group=www-data
+ExecStart=/var/www/swackhammer/env/bin/uwsgi --ini uwsgi.ini
+WorkingDirectory=/var/www/swackhammer
+Restart=always
+KillSignal=SIGTERM
+Type=simple
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

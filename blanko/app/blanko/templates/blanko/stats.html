@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Player Stats: {{ player.hostname }}</title>
+  </head>
+  <body>
+  {% include './include/navigation.html' %}
+
+    <table style="width: 50%; margin-left: auto; margin-right: auto;">
+        <tr>
+            <td>
+                <form action="{% url 'makeplay' player.id %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>New Play</h2></legend>
+                    {% if error_msg %}
+                    <p style="color: red"><b>{{ error_msg }}</b></p>
+                    {% endif %}
+                    <select id="play" name="play" size="1">
+                        <option value="PING" selcted>PING</option>
+                        <option value="GET">GET</option>
+                        <option value="EXEC">EXEC</option>
+                        <option value="SHELL">SHELL</option>
+                    </select>
+                    <br /><br />
+                    <label for="detail">Detail:</label>
+                    <input type="text" id="detail" name="detail" size="80" />
+                    <br /><br />
+                    <label for="slamport">Slam (UDP):</label>
+                    <input type="text" id="slamport" name="slamport" size="3" value="53" />
+                    <label for="jamport">Jam (TCP):</label>
+                    <input type="text" id="jamport" name="jamport" size="3" value="8080" />
+                    <br /><br />
+                    <input type="submit" value="SLAM!" />
+                    <br /><br />
+                </form>
+            </td>
+        </tr>
+    </table>
+
+    <h1>Play History:</h1>
+        <table>
+            <tr>
+                <th>Time</th>
+                <th>Play</th>
+                <th>Scored</th>
+                <th>Detail</th>
+                <th>Penalty</th>
+            </tr>
+            {% for play in plays %}
+                <tr>
+                    <td>{{ play.play_time }}</td>
+                    <td>{{ play.verb }}</td>
+                    {% if play.scored %}
+                        <td>Yes</td>
+                    {% else %}
+                        <td>No</td>
+                    {% endif %}
+                    {% if play.filepath %}
+                        <td><a href="{{ play.filepath }}">{{ play.detail }}</a></td>
+                    {% else %}
+                        <td>{{ play.detail }}</td>
+                    {% endif %}
+                    <td>{{ play.penalty }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+    <br /><br />
+    <form action="{% url 'fire' player.id %}" method="post">
+        {% csrf_token %}
+        <p>
+            <button type="submit" onclick="return confirm('Send this player back to Moron Mountain?');">
+                Fire {{ player.hostname }}
+            </button>
+        </p>
+    </form>
+
+  </body>
+</html>

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "swackhammer"
+version = "0.1.0"
+description = "welcome to the jam"
+dependencies = [
+    "django",
+    "uwsgi",
+]
+
+[project.scripts]
+swackhammer = "swackhammer.manage:main"
+swackhammer-keygen = "swackhammer.manage:generate_secret_key"

@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bang: Configure New Player</title>
+  </head>
+
+  <body>
+    {% include './include/navigation.html' %}
+    
+    <!-- configuration form -->
+    <table>
+        <tr>
+            <td>
+                <form action="{% url 'config' %}" method="post">
+                    {% csrf_token %}
+                    <legend><h2>Configure BANG</h2></legend>
+
+                    {% if fail_msg %}
+                    <p style="color: red;">{{ fail_msg }}</p>
+                    {% endif %}
+
+                    <table style="border: none; background: none;">
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="module_name">Target</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <select id="target" name="target">
+                                    <option value="lsass" {% if target == 'lsass' %} selected {% endif %}>lsass</option>
+                                    <option value="pam" disabled {% if target == 'pam' %} selected {% endif %}>pam</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="module_name">Module Name</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="module_name" name="module_name" size="34" value="{{ module_name }}" placeholder="bang" required />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="hostname">HTTPS Hostname</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input type="text" id="hostname" name="hostname" size="34" value="{{ hostname }}" placeholder="127.0.0.1" required />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; text-align: right;">
+                                <label for="auth_token">API token</label>
+                            </td>
+                            <td style="border: none; text-align: left;">
+                                <input list="auth_tokens" id="auth_token" name="auth_token" size="34" placeholder="(generate)" />
+                                <datalist id="auth_tokens">
+                                    {% for token in auth_tokens %}
+                                    <option value="{{ token }}">{{ token }}</option>
+                                    {% endfor %}
+                                </datalist>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"><input type="submit" value="Come on and Slam!" /></td>
+                        </tr>
+                    </table>
+                </form>
+            </td>
+        </tr>
+    </table>
+     
+  </body>
+</html>

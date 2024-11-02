@@ -1,0 +1,5 @@
+recursive-include blanko/installers *
+recursive-include blanko/static *
+recursive-include blanko/templates *
+global-exclude .gitignore
+global-exclude .gitinclude
