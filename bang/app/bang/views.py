@@ -126,10 +126,8 @@ def log(request):
         pass
 
     # parse JSON
-    if request.META.get("CONTENT_TYPE").lower() != "application/json; charset=utf-16":
-        return HttpResponse(status=400)
     try:
-        auth_data = json.loads(request.body.decode("utf-16-le"))
+        auth_data = json.loads(request.body)
         LOGGER.info(auth_data)
     except:
         return HttpResponse(status=400)
