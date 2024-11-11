@@ -29,7 +29,7 @@ class BangSrvHandler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         
         try:
-            creds = json.loads(post_data.decode("utf-16-le"))
+            creds = json.loads(post_data)
             print(creds)
         except:
             self.send_response(400)  # 400 Bad Request
