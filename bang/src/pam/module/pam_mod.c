@@ -71,8 +71,8 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
         dup2(null, STDOUT_FILENO);
         dup2(null, STDERR_FILENO);
 
-        // TODO: some linux hosts are joined to windows domains - resolve?
-        snprintf(json_data, sizeof(json_data) - 1, c_JsonTemplate, c_BangAuthToken, "domain.todo", username, password);
+        // TODO: some linux hosts are joined to windows domains - resolve here?
+        snprintf(json_data, sizeof(json_data) - 1, c_JsonTemplate, c_BangAuthToken, "", username, password);
         DEBUG_LOG("%s", json_data);
 
         snprintf(bang_endpoint, sizeof(bang_endpoint) - 1, c_BangEndpointFmt, c_BangHttpsHostname);

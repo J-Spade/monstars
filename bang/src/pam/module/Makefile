@@ -1,7 +1,7 @@
 SO_NAME ?= pam_bang.so
 SRC = pam_mod.c
-OUT_REL = ../../../../_export/bang/pam/release
-OUT_DBG = ../../../../_export/bang/pam/debug
+OUT_REL = ../../../../_build/bang/pam/release
+OUT_DBG = ../../../../_build/bang/pam/debug
 
 release:
 	mkdir -p $(OUT_REL)

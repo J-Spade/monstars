@@ -36,15 +36,16 @@ def configure_bang_installer(
 
     installer_bin = _stamp_value(installer_bin, BANG_HOSTNAME_STAMP.encode(encoding), hostname.encode(encoding))
     installer_bin = _stamp_value(installer_bin, BANG_AUTH_TOKEN_STAMP.encode(encoding), auth_token.encode(encoding))
-    if target == "lsass":
-        installer_bin = _stamp_value(installer_bin, BANG_MODULE_NAME_STAMP.encode(encoding), module_name.encode(encoding))
+    installer_bin = _stamp_value(installer_bin, BANG_MODULE_NAME_STAMP.encode(encoding), module_name.encode(encoding))
 
     return installer_bin
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--module-name", default="bang", help="Name for the module (does not include file extension)")
+    parser.add_argument(
+        "--module-name", default="bang", help="Name for the module (does not include file extension)"
+    )
     parser.add_argument("--hostname", required=True, help="HTTPS hostname")
     parser.add_argument(
         "--auth-token", default="00000000-0000-0000-0000-000000000000", help="API token (UUID)"
