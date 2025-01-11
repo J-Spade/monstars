@@ -2,12 +2,13 @@ import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
+import pathlib
 import socket
 import ssl
 import urllib
 
 SRV_PORT = 443
-BANG_CERT = "./bangsrv.pem"
+BANG_CERT = pathlib.Path(__file__).parent / "bangsrv.pem"
 BANG_ENDPOINT = "/bang/log/"
 
 

