@@ -4,10 +4,6 @@
 
 **bang** for Linux is a Pluggable Authentication Modules (PAM) module that sends intercepted logon credentials from the PAM authentication stack to an HTTPS endpoint.
 
-**TODO:**
-* implement PAM module
-* automated uninstallers (without reboot, if possible)
-
 
 ## Building
 
@@ -19,7 +15,9 @@ The SSP DLL is packaged as a resource into the installer EXE. On its own, the DL
 TLS/HTTPS is enabled for the SSP by default; to turn it off (for Django development or other testing), override the `BANG_TLS_ENABLED` compiler definition (by command line or by editing `provider/src/bang_http.cpp`).
 
 ### Linux
-TODO
+Ensure the PAM development headers are installed in your build environment.
+
+Use the Python script `scripts/build_pam_mod.py` to build an installer execuable. An unconfigured installer binary will be placed under the `_export/bang/pam/` directory of the repo.
 
 
 ## Django App
@@ -73,8 +71,13 @@ Run the configured installer EXE on the target. The installer handles:
 These operations require elevated privileges.
 
 ### Linux
-TODO
+Run the configured installer executable on the target. The installer handles:
+* placing the PAM module in the correct directory for the distro
+* adding an `auth` entry to an appropriate PAM stack for the distro
+* readjusting the modified/accessed timestamps for the module and the auth stack
+* setting the `nis_enabled` SELinux policy to enable outgoing network traffic from sshd
 
+These operations require elevated privileges.
 
 ## Uninstallation
 

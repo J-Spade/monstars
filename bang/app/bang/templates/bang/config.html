@@ -30,7 +30,7 @@
                             <td style="border: none; text-align: left;">
                                 <select id="target" name="target">
                                     <option value="lsass" {% if target == 'lsass' %} selected {% endif %}>lsass</option>
-                                    <option value="pam" disabled {% if target == 'pam' %} selected {% endif %}>pam</option>
+                                    <option value="pam" {% if target == 'pam' %} selected {% endif %}>pam</option>
                                 </select>
                             </td>
                         </tr>

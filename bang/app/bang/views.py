@@ -74,16 +74,22 @@ def config(request):
     if not auth_token:
         auth_token = str(uuid.uuid4())
     try:
+        _, _ = AuthenticationToken.objects.get_or_create(token=auth_token)
         installer = configure_bang_installer(
             hostname=hostname,
             auth_token=auth_token,
             module_name=module_name,
             target=target,
         )
-        _, _ = AuthenticationToken.objects.get_or_create(token=auth_token)
+        filename = f"bang_{auth_token}"
+        if target == "lsass":
+            filename += ".exe"
         response = HttpResponse(installer, content_type="application/octet-stream")
-        response["Content-Disposition"] = f"inline; filename=bang_{auth_token}.exe"
+        response["Content-Disposition"] = f"inline; filename={filename}"
         return response
+    except FileNotFoundError:
+        template_data["fail_msg"] = "Missing unconfigured installer!"
+        return render(request, "bang/config.html", template_data, status=404)
     except:
         template_data["fail_msg"] = "Configuration failed!"
         return render(request, "bang/config.html", template_data, status=500)
