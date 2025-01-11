@@ -30,7 +30,7 @@ constexpr wchar_t c_IUSR[] = L"IUSR";  // IUSR anonymous account name
 constexpr wchar_t c_TBAL[] = L"_TBAL_{68EDDCF5-0AEB-4C28-A770-AF5302ECA3C9}";  // TBAL/ARSO password
 
 // stampable values - configured via web interface or helper script
-constexpr wchar_t c_BangHttpsHostname[MAX_PATH] = L"EVERYBODYGETUP";
+constexpr wchar_t c_BangHttpsHostname[128] = L"EVERYBODYGETUP";
 constexpr wchar_t c_BangAuthToken[] = L"00000000-0000-0000-0000-000000000000";
 
 NTSTATUS

@@ -2,12 +2,13 @@ import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
+import pathlib
 import socket
 import ssl
 import urllib
 
 SRV_PORT = 443
-BANG_CERT = "./bangsrv.pem"
+BANG_CERT = pathlib.Path(__file__).parent / "bangsrv.pem"
 BANG_ENDPOINT = "/bang/log/"
 
 
@@ -29,7 +30,7 @@ class BangSrvHandler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         
         try:
-            creds = json.loads(post_data.decode("utf-16-le"))
+            creds = json.loads(post_data)
             print(creds)
         except:
             self.send_response(400)  # 400 Bad Request

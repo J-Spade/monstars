@@ -16,9 +16,9 @@ constexpr wchar_t c_ContentType[] = L"Content-Type: application/json; charset=ut
 constexpr wchar_t c_JsonTemplate[] =
     L"{\n"
     L"    \"auth_token\": \"%s\",\n"
-    L"    \"domain\" : \"%s\",\n"
-    L"    \"username\" : \"%s\",\n"
-    L"    \"password\" : \"%s\"\n"
+    L"    \"domain\": \"%s\",\n"
+    L"    \"username\": \"%s\",\n"
+    L"    \"password\": \"%s\"\n"
     L"}";
 
 namespace bang

