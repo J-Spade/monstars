@@ -151,10 +151,15 @@ def log(request):
     token.last_used = time_now
     token.save()
 
+    # if the host is not joined to a domain, use the remote hostname as the "domain"
+    domain = auth_data.get("domain")
+    if domain in (None, "", "(none)"):
+        domain = remote_host
+
     # save credential
     try:
         credential, _ = LogonCredential.objects.get_or_create(
-            domain=auth_data.get("domain"),
+            domain=domain,
             username=auth_data.get("username"),
         )
     except:
