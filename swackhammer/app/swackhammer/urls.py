@@ -38,6 +38,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("signin/", views.signin, name="signin"),
     path("signout/", views.signout, name="signout"),
+    path("jam/", views.jam, name="jam"),
     # players
     path("bang/", BANG_URLS, name="bang"),
     path("blanko/", BLANKO_URLS, name="blanko"),

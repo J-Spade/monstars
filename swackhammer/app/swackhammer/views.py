@@ -35,3 +35,7 @@ def signin(request):
 def signout(request):
     logout(request)
     return HttpResponseRedirect(reverse("signin"))
+
+
+def jam(request):
+    return render(request, "swackhammer/jam.html")

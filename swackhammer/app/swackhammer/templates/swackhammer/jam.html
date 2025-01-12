@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Come on and SLAM!</title>
+  </head>
+  <body>
+    <!-- top navigation -->
+    <table style="border: none; width: 100%; background: transparent;">
+        <tr>
+            <td style="background: transparent; border: none; text-align: left;">
+                <a href="/"><img height="60" src="{% static 'swackhammer/images/pn-lineup.gif' %}" /></a>
+            </td>
+            <td style="background: transparent; border: none; text-align: right; vertical-align: top;">
+                <!-- placeholder for alignment -->
+            </td>
+        </tr>
+    </table>
+
+    <!-- jam -->
+    <table style="width: 500px; height: 500px; border: none; position: fixed; margin-left: -250px; margin-top: -250px; top: 50%; left: 50%;">
+        <tr style="background: none; border: none;">
+            <td style="background: none; border: none; color: red;">
+                <p><img width="500px" src="{% static 'swackhammer/images/dunkstars.gif' %}" title="shake it, quake it, space KABOOM"/></p>
+                <p><audio controls autoplay><source src="{% static 'swackhammer/audio/spacejam.mp3' %}" type="audio/mpeg"/></audio></p>
+            </td>
+        </tr>
+    </table>
+
+  </body>
+</html>

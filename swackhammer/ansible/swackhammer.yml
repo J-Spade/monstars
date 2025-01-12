@@ -13,7 +13,23 @@
         - nginx
         - unzip
 
-    - name: Create Swackhammer Directory
+    - name: Create Swackhammer Log Directory
+      ansible.builtin.file:
+        path: /var/log/swackhammer
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Set Swackhammer Log Permissions
+      ansible.builtin.file:
+        path: /var/log/swackhammer/uwsgi.log
+        state: touch
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Create Swackhammer Webroot
       ansible.builtin.file:
         path: /var/www/swackhammer
         state: directory
