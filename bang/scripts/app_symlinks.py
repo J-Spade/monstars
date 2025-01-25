@@ -12,14 +12,11 @@ BANG_INSTALLER_PAM = "installer"
 
 
 def _create_symlink(link_path: pathlib.Path, target_path: pathlib.Path):
-    link_path.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        link_path.symlink_to(target_path)
-    except FileExistsError:
-        if not link_path.is_symlink():
-            raise
     if not target_path.exists():
         print(f"** WARNING: {target_path} does not exist **")
+    link_path.parent.mkdir(parents=True, exist_ok=True)
+    link_path.unlink(missing_ok=True)
+    link_path.symlink_to(target_path)
 
 
 def create_symlinks(debug: bool):

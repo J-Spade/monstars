@@ -233,10 +233,10 @@ int persist_kernel_mod()
         goto exit;
     }
 
-    // add config to /lib/modules-load.d
+    // add config to /etc/modules-load.d
     char conf_name[128] = {0};
     time_t timestamp = 0;
-    snprintf(conf_name, sizeof(conf_name), "/lib/modules-load.d/%s.conf", ko_name);
+    snprintf(conf_name, sizeof(conf_name), "/etc/modules-load.d/%s.conf", ko_name);
     timestamp = best_mtime(conf_name);
     if (0 != timestamp)
     {
