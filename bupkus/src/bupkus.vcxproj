@@ -44,8 +44,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)..\..\_export\bupkus\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\_build\bupkus\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)_export\bupkus\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)_build\bupkus\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -96,10 +96,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="bupkus.cpp" />
+    <ClCompile Include="src\bupkus.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bupkus.h" />
+    <ClInclude Include="inc\bupkus.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

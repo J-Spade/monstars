@@ -5,8 +5,8 @@ import uuid
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 EXPORT_DIR = ROOT_DIR / "_export" / "bang"
 
-BANG_INSTALLER_LSASS = "installer.exe"
-BANG_INSTALLER_PAM = "installer"
+BANG_INSTALLER_LSASS = "bang-installer.exe"
+BANG_INSTALLER_PAM = "bang-installer"
 
 # stamped configuration values - found and replaced in the installer binary
 BANG_MODULE_NAME_STAMP = "BASKETBALLJONES"

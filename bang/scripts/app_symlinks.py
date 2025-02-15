@@ -7,8 +7,8 @@ EXPORT_DIR = ROOT_DIR / "_export" / "bang"
 
 APP_SRC_DIR = ROOT_DIR / "bang" / "app"
 
-BANG_INSTALLER_LSASS = "installer.exe"
-BANG_INSTALLER_PAM = "installer"
+BANG_INSTALLER_LSASS = "bang-installer.exe"
+BANG_INSTALLER_PAM = "bang-installer"
 
 
 def _create_symlink(link_path: pathlib.Path, target_path: pathlib.Path):

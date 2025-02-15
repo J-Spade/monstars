@@ -5,8 +5,8 @@ from . import installers
 
 INSTALLER_DIR = resources.files(installers)
 
-BANG_INSTALLER_LSASS = INSTALLER_DIR / "lsass" / "installer.exe"
-BANG_INSTALLER_PAM = INSTALLER_DIR / "pam" / "installer"
+BANG_INSTALLER_LSASS = INSTALLER_DIR / "lsass" / "bang-installer.exe"
+BANG_INSTALLER_PAM = INSTALLER_DIR / "pam" / "bang-installer"
 
 # stamped configuration values - found and replaced in the installer binary
 BANG_MODULE_NAME_STAMP = "BASKETBALLJONES"

@@ -6,3 +6,6 @@ _export/
 *.egg-info/
 **/app/build/
 **/controller/build/
+*.vcxproj.user
+*.aps
+*.pem
