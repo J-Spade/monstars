@@ -1,5 +1,4 @@
 import base64
-import datetime
 import json
 import logging
 import socket
@@ -11,6 +10,7 @@ from django.core import serializers
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
@@ -19,11 +19,24 @@ from .utils import configure_bang_installer
 
 LOGGER = logging.getLogger("django")
 
+# ignored logon usernames for machines/services
+IGNORED_LOGONS = [
+    "IUSR",
+    "_TBAL_{68EDDCF5-0AEB-4C28-A770-AF5302ECA3C9}",
+]
+SERVICE_LOGON_PREFIXES = [
+    "UMFD-",
+    "DWM-",
+    "sshd_",
+]
+
 
 @require_GET
 @login_required(login_url="/signin/", redirect_field_name=None)
 def index(request):
-    credentials = LogonCredential.objects.order_by("-last_used")
+    # only show the most recent 1000 logons
+    #   (TODO: look into pagination)
+    credentials = LogonCredential.objects.order_by("-last_used")[:1000]
     return render(
         request, "bang/index.html", {"credentials": credentials}
     )
@@ -110,7 +123,7 @@ def export(request):
                 "last_changed": str(cred.last_changed),
             }
         )
-    timestr = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    timestr = timezone.now().strftime("%Y%m%d-%H%M%S")
     response = HttpResponse(json.dumps(creds, sort_keys=True, indent=4), content_type="application/json")
     response["Content-Disposition"] = f"inline; filename=bang_{timestr}.json"
     return response
@@ -119,7 +132,7 @@ def export(request):
 @require_POST
 @csrf_exempt
 def log(request):
-    time_now = datetime.datetime.now()
+    time_now = timezone.now()
 
     # grab remote hostname
     if forwarded := request.META.get("HTTP_X_FORWARDED_FOR"):
@@ -150,6 +163,13 @@ def log(request):
     token.last_hostname = remote_host
     token.last_used = time_now
     token.save()
+
+    # ignore service logins
+    username = auth_data.get("username")
+    if username in IGNORED_LOGONS or any(
+        username.startswith(svc_pfx) for svc_pfx in SERVICE_LOGON_PREFIXES
+    ):
+        return HttpResponse(status=200)
 
     # if the host is not joined to a domain, use the remote hostname as the "domain"
     domain = auth_data.get("domain")
