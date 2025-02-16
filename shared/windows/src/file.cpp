@@ -3,10 +3,10 @@
 #include <sspi.h>
 #include <aclapi.h>
 
-#include <jam/memory.h>
-#include <jam/object.h>
+#include <monstars/memory.h>
+#include <monstars/object.h>
 
-#include <jam/file.h>
+#include <monstars/file.h>
 
 namespace monstars
 {

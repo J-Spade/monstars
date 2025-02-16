@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-#include <jam/object.h>
+#include <monstars/object.h>
 
 namespace monstars
 {

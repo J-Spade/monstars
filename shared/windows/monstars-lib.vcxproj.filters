@@ -18,26 +18,26 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pubinc\jam\file.h">
-      <Filter>pubinc</Filter>
-    </ClInclude>
-    <ClInclude Include="pubinc\jam\http.h">
-      <Filter>pubinc</Filter>
-    </ClInclude>
-    <ClInclude Include="pubinc\jam\logging.h">
-      <Filter>pubinc</Filter>
-    </ClInclude>
-    <ClInclude Include="pubinc\jam\memory.h">
-      <Filter>pubinc</Filter>
-    </ClInclude>
-    <ClInclude Include="pubinc\jam\object.h">
-      <Filter>pubinc</Filter>
-    </ClInclude>
-    <ClInclude Include="pubinc\jam\mutex.h">
-      <Filter>pubinc</Filter>
-    </ClInclude>
     <ClInclude Include="src\memory.ipp">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="pubinc\monstars\file.h">
+      <Filter>pubinc</Filter>
+    </ClInclude>
+    <ClInclude Include="pubinc\monstars\http.h">
+      <Filter>pubinc</Filter>
+    </ClInclude>
+    <ClInclude Include="pubinc\monstars\logging.h">
+      <Filter>pubinc</Filter>
+    </ClInclude>
+    <ClInclude Include="pubinc\monstars\memory.h">
+      <Filter>pubinc</Filter>
+    </ClInclude>
+    <ClInclude Include="pubinc\monstars\mutex.h">
+      <Filter>pubinc</Filter>
+    </ClInclude>
+    <ClInclude Include="pubinc\monstars\object.h">
+      <Filter>pubinc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

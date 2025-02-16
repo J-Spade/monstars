@@ -96,12 +96,12 @@
     <ClCompile Include="src\provider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\provider.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\shared\windows\monstars-lib.vcxproj">
       <Project>{ebeb48ab-1129-46ff-8356-a0e275c5d17f}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="inc\provider.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

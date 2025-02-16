@@ -104,15 +104,15 @@
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\object.cpp" />
     <ClCompile Include="src\mutex.cpp" />
+    <ClInclude Include="src\memory.ipp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pubinc\jam\file.h" />
-    <ClInclude Include="pubinc\jam\http.h" />
-    <ClInclude Include="pubinc\jam\logging.h" />
-    <ClInclude Include="pubinc\jam\memory.h" />
-    <ClInclude Include="pubinc\jam\mutex.h" />
-    <ClInclude Include="pubinc\jam\object.h" />
-    <ClInclude Include="src\memory.ipp" />
+    <ClInclude Include="pubinc\monstars\file.h" />
+    <ClInclude Include="pubinc\monstars\http.h" />
+    <ClInclude Include="pubinc\monstars\logging.h" />
+    <ClInclude Include="pubinc\monstars\memory.h" />
+    <ClInclude Include="pubinc\monstars\mutex.h" />
+    <ClInclude Include="pubinc\monstars\object.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

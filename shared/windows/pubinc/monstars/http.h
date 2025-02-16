@@ -5,10 +5,10 @@
 #include <winhttp.h>
 
 // enable TLS/HTTPS
-#ifndef JAM_TLS_ENABLED
-    #define JAM_TLS_ENABLED 1
+#ifndef TLS_ENABLED
+    #define TLS_ENABLED 1
 #endif
-#if !JAM_TLS_ENABLED
+#if !TLS_ENABLED
     #pragma message("*** WARNING: TLS/HTTPS is disabled for this build ***")
 #endif
 
@@ -37,7 +37,7 @@ class HttpClient
 public:
     HttpClient(const wchar_t* hostname);
     
-    bool PostRequest(const wchar_t* endpoint, const char* data, int dataLen,
+    bool PostRequest(const wchar_t* endpoint, const char* data, size_t dataLen,
         const wchar_t* contentType = L"application/octet-stream");
 
     bool Forbidden() const { return m_forbidden; };

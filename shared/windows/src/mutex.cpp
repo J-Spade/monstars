@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-#include <jam/mutex.h>
+#include <monstars/mutex.h>
 
 namespace monstars
 {

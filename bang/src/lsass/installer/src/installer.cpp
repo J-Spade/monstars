@@ -3,8 +3,8 @@
 #include <sspi.h>
 #include <aclapi.h>
 
-#include <jam/file.h>
-#include <jam/logging.h>
+#include <monstars/file.h>
+#include <monstars/logging.h>
 
 #include "resource.h"
 

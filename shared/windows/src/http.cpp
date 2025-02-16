@@ -1,7 +1,7 @@
 #include <Windows.h>
 
-#include <jam/logging.h>
-#include <jam/http.h>
+#include <monstars/logging.h>
+#include <monstars/http.h>
 
 namespace monstars
 {
@@ -43,7 +43,7 @@ HttpClient::HttpClient(const wchar_t* hostname)
     }
 }
 
-bool HttpClient::PostRequest(const wchar_t* endpoint, const char* data, int dataLen, const wchar_t* contentType)
+bool HttpClient::PostRequest(const wchar_t* endpoint, const char* data, size_t dataLen, const wchar_t* contentType)
 {
     if (!m_connected)
     {
@@ -52,7 +52,7 @@ bool HttpClient::PostRequest(const wchar_t* endpoint, const char* data, int data
     }
     m_forbidden = false;
 
-#if JAM_TLS_ENABLED
+#if TLS_ENABLED
     DWORD req_flags = WINHTTP_FLAG_SECURE;
 #else
     DWORD req_flags = 0;
@@ -61,13 +61,14 @@ bool HttpClient::PostRequest(const wchar_t* endpoint, const char* data, int data
         WINHTTP_DEFAULT_ACCEPT_TYPES, req_flags);
     if (request)
     {
-#if JAM_TLS_ENABLED
+#if TLS_ENABLED
         DWORD sec_flags = SECURITY_FLAG_IGNORE_ALL_CERT_ERRORS;
         if (WinHttpSetOption(request, WINHTTP_OPTION_SECURITY_FLAGS, &sec_flags, sizeof(sec_flags)))
 #endif
         {
 #pragma warning(suppress: 6385)
-            if (WinHttpSendRequest(request, contentType, -1L, const_cast<char*>(data), dataLen, dataLen, NULL))
+            if (WinHttpSendRequest(request, contentType, -1L, const_cast<char*>(data), static_cast<DWORD>(dataLen),
+                static_cast<DWORD>(dataLen), NULL))
             {
                 if (WinHttpReceiveResponse(request, nullptr))
                 {

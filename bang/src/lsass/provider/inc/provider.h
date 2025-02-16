@@ -22,7 +22,7 @@ constexpr wchar_t c_JsonTemplate[] =
     L"    \"password\": \"%s\"\n"
     L"}";
 
-constexpr wchar_t c_BangEndpoint[] = L"bang/log/";
+constexpr wchar_t c_Endpoint[] = L"bang/log/";
 constexpr wchar_t c_ContentType[] = L"Content-Type: application/json; charset=utf-16\r\n";
 
 constexpr uint64_t c_ReauthCooldown = 5 * 1000 * 1000 * 10;  // 5 seconds, in 10ns units
