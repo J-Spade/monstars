@@ -1,5 +1,5 @@
-#ifndef _JAM_MUTEX_H_
-#define _JAM_MUTEX_H_
+#ifndef _MONSTARS_MUTEX_H_
+#define _MONSTARS_MUTEX_H_
 
 #include <Windows.h>
 
@@ -24,4 +24,4 @@ private:
 }  // namespace monstars
 
 
-#endif  // _JAM_MUTEX_H_
+#endif  // _MONSTARS_MUTEX_H_

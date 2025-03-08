@@ -16,6 +16,9 @@
     <ClCompile Include="src\mutex.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\util.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\memory.ipp">
@@ -37,6 +40,9 @@
       <Filter>pubinc</Filter>
     </ClInclude>
     <ClInclude Include="pubinc\monstars\object.h">
+      <Filter>pubinc</Filter>
+    </ClInclude>
+    <ClInclude Include="pubinc\monstars\util.h">
       <Filter>pubinc</Filter>
     </ClInclude>
   </ItemGroup>

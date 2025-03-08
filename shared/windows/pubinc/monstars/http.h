@@ -1,5 +1,5 @@
-#ifndef _JAM_HTTP_H_
-#define _JAM_HTTP_H_
+#ifndef _MONSTARS_HTTP_H_
+#define _MONSTARS_HTTP_H_
 
 #include <Windows.h>
 #include <winhttp.h>
@@ -56,4 +56,4 @@ private:
     
 }  // namespace monstars
 
-#endif  // _JAM_HTTP_H_
+#endif  // _MONSTARS_HTTP_H_

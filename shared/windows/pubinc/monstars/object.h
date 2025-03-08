@@ -1,5 +1,5 @@
-#ifndef _JAM_OBJECT_H_
-#define _JAM_OBJECT_H_
+#ifndef _MONSTARS_OBJECT_H_
+#define _MONSTARS_OBJECT_H_
 
 #include <Windows.h>
 
@@ -29,4 +29,4 @@ private:
 }  // namespace monstars
 
 
-#endif  // _JAM_OBJECT_H_
+#endif  // _MONSTARS_OBJECT_H_

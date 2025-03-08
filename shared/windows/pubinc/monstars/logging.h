@@ -1,5 +1,5 @@
-#ifndef _JAM_LOGGING_H_
-#define _JAM_LOGGING_H_
+#ifndef _MONSTARS_LOGGING_H_
+#define _MONSTARS_LOGGING_H_
 
 #include <Windows.h>
 
@@ -20,4 +20,4 @@ do {                                                                            
     DEBUG_PRINTW(L"%S:%d - error 0x%lx\n", __FILE__, __LINE__, GetLastError());  \
 } while (0);
 
-#endif  // _JAM_LOGGING_H_
+#endif  // _MONSTARS_LOGGING_H_

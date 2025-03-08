@@ -1,5 +1,5 @@
-#ifndef _JAM_MEMORY_H_
-#define _JAM_MEMORY_H_
+#ifndef _MONSTARS_MEMORY_H_
+#define _MONSTARS_MEMORY_H_
 
 #include <Windows.h>
 
@@ -51,4 +51,4 @@ private:
 
 #include "../src/memory.ipp"
 
-#endif  // _JAM_MEMORY_H_
+#endif  // _MONSTARS_MEMORY_H_

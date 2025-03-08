@@ -63,6 +63,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <AdditionalOptions>/Gs99999999 %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,6 +105,7 @@
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\object.cpp" />
     <ClCompile Include="src\mutex.cpp" />
+    <ClCompile Include="src\util.cpp" />
     <ClInclude Include="src\memory.ipp" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +115,7 @@
     <ClInclude Include="pubinc\monstars\memory.h" />
     <ClInclude Include="pubinc\monstars\mutex.h" />
     <ClInclude Include="pubinc\monstars\object.h" />
+    <ClInclude Include="pubinc\monstars\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

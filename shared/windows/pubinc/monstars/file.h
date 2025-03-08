@@ -1,5 +1,5 @@
-#ifndef _JAM_FILES_H_
-#define _JAM_FILES_H_
+#ifndef _MONSTARS_FILES_H_
+#define _MONSTARS_FILES_H_
 
 #include <Windows.h>
 
@@ -35,4 +35,4 @@ bool DropAndBlendFile(const wchar_t* targetPath, const char* data, int dataLen, 
 }
 
 
-#endif  // _JAM_FILES_H_
+#endif  // _MONSTARS_FILES_H_
