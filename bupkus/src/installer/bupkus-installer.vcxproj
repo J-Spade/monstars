@@ -13,8 +13,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{0d3250b9-46ae-4831-b172-c4e9359c7cd6}</ProjectGuid>
-    <RootNamespace>bupkus</RootNamespace>
+    <ProjectGuid>{924685e6-97ae-44a9-8f58-f8b00bc21e25}</ProjectGuid>
+    <RootNamespace>bupkus-installer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -42,7 +42,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <OutDir>$(SolutionDir)_export\bupkus\$(Configuration.toLower())\</OutDir>
-    <IntDir>$(SolutionDir)_build\bupkus\$(Configuration.toLower())\</IntDir>
+    <IntDir>$(SolutionDir)_build\bupkus\installer\$(Configuration.toLower())\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -53,19 +53,22 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalIncludeDirectories>inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <AdditionalOptions>/Gs99999999 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
-      <EntryPointSymbol>wWinMain</EntryPointSymbol>
-      <AdditionalDependencies>winhttp.lib;crypt32.lib;ucrt.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>main</EntryPointSymbol>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Secur32.lib;libucrt.lib</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>inc</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -77,32 +80,36 @@
       <ConformanceMode>true</ConformanceMode>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <AdditionalIncludeDirectories>inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
-      <ControlFlowGuard>false</ControlFlowGuard>
       <AdditionalOptions>/Gs99999999 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
-      <EntryPointSymbol>wWinMain</EntryPointSymbol>
-      <AdditionalDependencies>winhttp.lib;crypt32.lib;ucrt.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>main</EntryPointSymbol>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Secur32.lib;libucrt.lib</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>inc</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\bupkus.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="inc\bupkus.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\shared\windows\monstars-lib.vcxproj">
+    <ProjectReference Include="$(SolutionDir)shared\windows\monstars-lib.vcxproj">
       <Project>{ebeb48ab-1129-46ff-8356-a0e275c5d17f}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="inc\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\installer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\installer.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

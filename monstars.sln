@@ -10,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bang-installer", "bang\src\
 		{26860957-1E5D-44D0-BCA4-13DB821108E8} = {26860957-1E5D-44D0-BCA4-13DB821108E8}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bupkus", "bupkus\src\bupkus.vcxproj", "{0D3250B9-46AE-4831-B172-C4E9359C7CD6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bupkus-listener", "bupkus\src\listener\bupkus-listener.vcxproj", "{0D3250B9-46AE-4831-B172-C4E9359C7CD6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bang", "bang", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
@@ -19,6 +19,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "monstars-lib", "shared\windows\monstars-lib.vcxproj", "{EBEB48AB-1129-46FF-8356-A0E275C5D17F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{70BB41EA-FBA8-404D-945E-37DF00DD9202}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bupkus-installer", "bupkus\src\installer\bupkus-installer.vcxproj", "{924685E6-97AE-44A9-8F58-F8B00BC21E25}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0D3250B9-46AE-4831-B172-C4E9359C7CD6} = {0D3250B9-46AE-4831-B172-C4E9359C7CD6}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +47,10 @@ Global
 		{EBEB48AB-1129-46FF-8356-A0E275C5D17F}.Debug|x64.Build.0 = Debug|x64
 		{EBEB48AB-1129-46FF-8356-A0E275C5D17F}.Release|x64.ActiveCfg = Release|x64
 		{EBEB48AB-1129-46FF-8356-A0E275C5D17F}.Release|x64.Build.0 = Release|x64
+		{924685E6-97AE-44A9-8F58-F8B00BC21E25}.Debug|x64.ActiveCfg = Debug|x64
+		{924685E6-97AE-44A9-8F58-F8B00BC21E25}.Debug|x64.Build.0 = Debug|x64
+		{924685E6-97AE-44A9-8F58-F8B00BC21E25}.Release|x64.ActiveCfg = Release|x64
+		{924685E6-97AE-44A9-8F58-F8B00BC21E25}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +60,7 @@ Global
 		{5CEDD867-8925-4943-996D-A3050F0C0EC2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{0D3250B9-46AE-4831-B172-C4E9359C7CD6} = {BF4A9AB2-DC17-40DA-835B-6EBEAFD52238}
 		{EBEB48AB-1129-46FF-8356-A0E275C5D17F} = {70BB41EA-FBA8-404D-945E-37DF00DD9202}
+		{924685E6-97AE-44A9-8F58-F8B00BC21E25} = {BF4A9AB2-DC17-40DA-835B-6EBEAFD52238}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2B5AE74A-CC06-419F-9FD5-559F7AB5A980}

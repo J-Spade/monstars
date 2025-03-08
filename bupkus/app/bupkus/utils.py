@@ -21,7 +21,7 @@ def _stamp_value(binary: bytes, stamp_pattern: bytes, stamp_data: bytes) -> byte
     )
 
 
-def configure_bupkus_installer(hostname: str, auth_token: str, module_name: str) -> bytes:
+def configure_bupkus_installer(hostname: str, auth_token: str, listener_name: str) -> bytes:
     with BUPKUS_INSTALLER.open("rb") as f:
         installer_bin = f.read()
 
@@ -38,7 +38,7 @@ def configure_bupkus_installer(hostname: str, auth_token: str, module_name: str)
     installer_bin = _stamp_value(
         installer_bin,
         BUPKUS_MODULE_NAME_STAMP.encode("utf-16-le"),
-        module_name.encode("utf-16-le"),
+        listener_name.encode("utf-16-le"),
     )
 
     return installer_bin, BUPKUS_INSTALLER.name

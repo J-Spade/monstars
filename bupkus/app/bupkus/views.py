@@ -55,21 +55,21 @@ def revoke(request, token_id):
 def config(request):
     tokens = [str(token) for token in AuthenticationToken.objects.order_by("token").filter(revoked=False)]
     template_data = {
-        "module_name": "",
+        "listener_name": "",
         "hostname": "",  # TODO: determine own hostname?
         "auth_tokens": tokens,
     }
     if request.method == "GET":
         return render(request, "bupkus/config.html", template_data)
     try:
-        module_name = request.POST["module_name"]
+        listener_name = request.POST["listener_name"]
         hostname = request.POST["hostname"]
         auth_token = request.POST["auth_token"]
     except KeyError:
         return render(request, "bupkus/config.html")
     template_data.update({k: v for k, v in request.POST.items() if k in template_data})
         
-    if not all((module_name, hostname)):
+    if not all((listener_name, hostname)):
         template_data["fail_msg"] = "Missing configuration data!"
         return render(request, "bupkus/config.html", template_data, status=400)
 
@@ -80,7 +80,7 @@ def config(request):
         installer = configure_bupkus_installer(
             hostname=hostname,
             auth_token=auth_token,
-            module_name=module_name,
+            listener_name=listener_name,
         )
         filename = f"bupkus_{auth_token}.exe"
         response = HttpResponse(installer, content_type="application/octet-stream")
