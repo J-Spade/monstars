@@ -1,11 +1,9 @@
-import hashlib
+import base64
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
 import pathlib
-import socket
 import ssl
-import urllib
 
 SRV_PORT = 443
 BUPKUS_CERT = pathlib.Path(__file__).parent / "bupkus.pem"
@@ -21,7 +19,8 @@ class BupkusSrvHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
-        if self.path != BANG_ENDPOINT:
+        # accepts POST requests to /bupkus/paste
+        if self.path != BUPKUS_ENDPOINT:
             self.send_response(404)  # 404 Not Found
             self.end_headers()
             return
@@ -30,8 +29,10 @@ class BupkusSrvHandler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         
         try:
-            data = json.loads(post_data)
-            print(data)
+            paste_data = json.loads(post_data.decode("ascii"))
+            print(paste_data)
+            paste_text = base64.b64decode(paste_data.get("paste")).decode()
+            print(paste_text)
         except:
             self.send_response(400)  # 400 Bad Request
         else:
