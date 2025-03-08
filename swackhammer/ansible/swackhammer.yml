@@ -31,7 +31,7 @@
 
     - name: Set Swackhammer Log Permissions
       ansible.builtin.file:
-        path: /var/log/swackhammer/uwsgi.log
+        path: /var/log/swackhammer/swackhammer.log
         state: touch
         owner: www-data
         group: www-data
