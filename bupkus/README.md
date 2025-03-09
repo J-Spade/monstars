@@ -4,7 +4,10 @@
 
 ## Building
 
-TODO
+The recommended build environment is Visual Studio 2022. Building the solution `monstars.sln` will create an installer EXE within the `_export/bupkus` directory of the repo.
+
+The listener executable is packaged as a resource into the installer EXE, or can also be located within the `_build/bupkus` directory of the repo.
+
 
 ## Django App
 
@@ -49,6 +52,6 @@ Run the configured installer EXE on the target. The installer handles:
 * placing the listener EXE in `C:\Windows\System32`
 * transfering ownership of the EXE to `TrustedInstaller`
 * readjusting the created/modified/accessed timestamps for the EXE and parent directory
-* TODO: persistence
+* registering the listener EXE as an on-exit debugger for the `userinit.exe` Windows process
 
 These operations require elevated privileges.

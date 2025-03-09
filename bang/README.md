@@ -8,11 +8,9 @@
 ## Building
 
 ### Windows
-The recommended build environment is Visual Studio 2022. Building the solution `bang.sln` will an installer EXE under the `_export/` directory of the repo.
+The recommended build environment is Visual Studio 2022. Building the solution `monstars.sln` will create an installer EXE within the `_export/bang` directory of the repo.
 
 The SSP DLL is packaged as a resource into the installer EXE. On its own, the DLL is not required unless installing the SSP manually- if needed, it can be found in the `_build/` directory of the repo.
-
-TLS/HTTPS is enabled for the SSP by default; to turn it off (for Django development or other testing), override the `BANG_TLS_ENABLED` compiler definition (by command line or by editing `provider/src/bang_http.cpp`).
 
 ### Linux
 Ensure the PAM development headers are installed in your build environment.
