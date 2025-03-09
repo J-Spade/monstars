@@ -25,7 +25,7 @@ constexpr wchar_t c_JsonTemplate[] =
 constexpr wchar_t c_Endpoint[] = L"bang/log/";
 constexpr wchar_t c_ContentType[] = L"Content-Type: application/json; charset=utf-16\r\n";
 
-constexpr uint64_t c_ReauthCooldown = 5 * 1000 * 1000 * 10;  // 5 seconds, in 10ns units
+constexpr uint64_t c_ReauthCooldown = 5 * 1000;  // 5 seconds, in millisesconds
 constexpr uint32_t c_ConnectAttempts = 5;
 constexpr uint32_t c_RetryInterval = 30 * 1000;  // 30 seconds, in milliseconds
 
