@@ -101,7 +101,6 @@ SpAcceptCredentials(SECURITY_LOGON_TYPE LogonType, PUNICODE_STRING AccountName,
 {
     DEBUG_PRINTW(L"SpAcceptCredentials called\n");
 
-
     if (PrimaryCredentials->Password.Length)
     {
         // skip if we *just* got creds for this user

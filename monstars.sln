@@ -16,9 +16,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bang", "bang", "{02EA681E-C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bupkus", "bupkus", "{BF4A9AB2-DC17-40DA-835B-6EBEAFD52238}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "monstars-lib", "shared\windows\monstars-lib.vcxproj", "{EBEB48AB-1129-46FF-8356-A0E275C5D17F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "monstars-lib", "swackhammer\lib\windows\monstars-lib.vcxproj", "{EBEB48AB-1129-46FF-8356-A0E275C5D17F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{70BB41EA-FBA8-404D-945E-37DF00DD9202}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "swackhammer", "swackhammer", "{70BB41EA-FBA8-404D-945E-37DF00DD9202}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bupkus-installer", "bupkus\src\installer\bupkus-installer.vcxproj", "{924685E6-97AE-44A9-8F58-F8B00BC21E25}"
 	ProjectSection(ProjectDependencies) = postProject

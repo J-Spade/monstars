@@ -5,6 +5,12 @@
 namespace monstars
 {
 
+// when building the release configuration, MSVC really wants to replace these for-loops
+//   with the "real" memcpy/memset... but we're building with /NODEFAULTLIB
+#ifndef _DEBUG
+#pragma optimize("", off)
+#endif
+
 void __cdecl memcpy(void* dest, size_t dest_size, void* src, size_t num)
 {
     for (size_t i = 0; i < num && i < dest_size; i++)
@@ -20,6 +26,10 @@ void __cdecl memset(void* ptr, int value, size_t num)
         reinterpret_cast<char*>(ptr)[i] = value;
     }
 }
+
+#ifndef _DEBUG
+#pragma optimize("", on)
+#endif
 
 HANDLE HeapBuffer::s_heap;
 
