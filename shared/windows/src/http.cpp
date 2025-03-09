@@ -90,7 +90,7 @@ bool HttpClient::PostRequest(const wchar_t* endpoint, const char* data, size_t d
         }
     }
 
-    DEBUG_PRINTW(L"failed to POST: 0x%lx\n", GetLastError());
+    LOG_LINE_ERROR;
     return false;
 }
 
