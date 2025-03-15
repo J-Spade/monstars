@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bupkus: Recent Plays</title>
+  </head>
+
+  <body>
+    {% include './include/navigation.html' %}
+
+    <!-- table of credentials -->
+    <h1>Recent Plays</h1>
+    <table>
+        <tr>
+            <th>Hostname</th>
+            <th>Username</th>
+            <th>Time</th>
+            <th>Paste</th>
+        </tr>
+        {% for paste in pastes %}
+        <tr>
+            <td>
+                {{ paste.hostname }}
+            </td>
+            <td>
+                {{ paste.username }}
+            </td>
+            <td>
+                {{ paste.paste_time }}
+            </td>
+            <td>
+                <a href="{{ paste.file_path }}">
+                    {{ paste.paste_size }} bytes
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+  </body>
+</html>

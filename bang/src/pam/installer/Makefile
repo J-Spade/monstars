@@ -1,4 +1,4 @@
-INSTALLER_NAME ?= installer
+INSTALLER_NAME ?= bang-installer
 SRC = installer.c
 PCH_INC_REL = ../../../../_build/bang/pam/release/
 PCH_INC_DBG = ../../../../_build/bang/pam/debug/

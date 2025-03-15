@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<link rel="stylesheet" href="{% static 'swackhammer/style.css' %}">
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bupkus: API Tokens</title>
+  </head>
+
+  <body>
+    {% include './include/navigation.html' %}
+
+    <!-- table of auth tokens -->
+    <h1>API Tokens</h1>
+        <table style="margin-left: auto; margin-right: auto;">
+            <tr>
+                <th>Token</th>
+                <th>Last Used</th>
+                <th>Last Hostname</th>
+                <th>Revoked</th>
+            </tr>
+            {% for token in tokens %}
+            <tr>
+                {% if token.revoked %}
+                <td style="color: red;">
+                {% else %}
+                <td>
+                {% endif %}
+                    {{ token.token }}
+                </td>
+                <td>
+                    {{ token.last_used }}
+                </td>
+                <td>
+                    {{ token.last_hostname }}
+                </td>
+                <td>
+                    <form action="{% url 'bupkus-revoke' token.token %}" method="post">
+                        {% csrf_token %}
+                        {% if token.revoked %}
+                        <a href="javascript:;" onclick="parentNode.submit();">
+                        {% else %}
+                        <a href="javascript:;" onclick="parentNode.submit();" style="color: yellow;">
+                        {% endif %}
+                            {{ token.revoked }}
+                        </a>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 USER_EXE_NAME ?= blanko
-SRC = blanko.c base64.c
+SRC = blanko.c base64/base64.c
 OUT_REL = ../../../_build/blanko/$(KERNEL_VER)/release/$(USER_EXE_NAME)
 OUT_DBG = ../../../_build/blanko/$(KERNEL_VER)/debug/$(USER_EXE_NAME)
 

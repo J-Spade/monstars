@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "base64.h"
+#include "base64/base64.h"
 
 #define MAX_DATA_SIZE 64000      // a bit smaller than the maximum TCP/UDP payload sizes
 #define IP4_LEN_MAX 16           // xxx.xxx.xxx.xxx\0

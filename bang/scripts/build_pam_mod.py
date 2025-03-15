@@ -17,7 +17,7 @@ BUILD_DIR = ROOT_DIR / "_build" / "bang" / "pam"
 EXPORT_DIR = ROOT_DIR / "_export" / "bang" / "pam"
 
 # binary artifact names
-INSTALLER_NAME = "installer"
+INSTALLER_NAME = "bang-installer"
 SO_NAME = "pam_bang.so"
 
 # precompiled headers and stampable constants

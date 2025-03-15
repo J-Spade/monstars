@@ -14,7 +14,7 @@
             <td>
                 <form action="{% url 'makeplay' player.id %}" method="post">
                     {% csrf_token %}
-                    <legend><h2>New Play</h2></legend>
+                    <legend><h2>{{ player.hostname }}</h2></legend>
                     {% if error_msg %}
                     <p style="color: red"><b>{{ error_msg }}</b></p>
                     {% endif %}

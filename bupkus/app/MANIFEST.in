@@ -1,0 +1,5 @@
+recursive-include bupkus/installers *
+recursive-include bupkus/static *
+recursive-include bupkus/templates *
+global-exclude .gitignore
+global-exclude .gitinclude

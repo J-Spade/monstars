@@ -3,6 +3,10 @@ __pycache__/
 .vscode/
 _build/
 _export/
+env/
 *.egg-info/
 **/app/build/
 **/controller/build/
+*.vcxproj.user
+*.aps
+*.pem
