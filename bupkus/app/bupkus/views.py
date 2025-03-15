@@ -47,7 +47,7 @@ def revoke(request, token_id):
     token = get_object_or_404(AuthenticationToken, pk=token_id)
     token.revoked = not token.revoked
     token.save()
-    return HttpResponseRedirect(reverse("tokens"))
+    return HttpResponseRedirect(reverse("bupkus-tokens"))
 
 
 @require_http_methods(["GET", "POST"])

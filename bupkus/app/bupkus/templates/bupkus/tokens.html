@@ -35,7 +35,7 @@
                     {{ token.last_hostname }}
                 </td>
                 <td>
-                    <form action="{% url 'revoke' token.token %}" method="post">
+                    <form action="{% url 'bupkus-revoke' token.token %}" method="post">
                         {% csrf_token %}
                         {% if token.revoked %}
                         <a href="javascript:;" onclick="parentNode.submit();">
